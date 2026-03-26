@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+@theme {
+  /* Primary — Esmeralda */
+  --color-primary: #007257;
+  --color-primary-container: #89f0cb;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #00382a;
+
+  /* Secondary — Rosa polvorienta */
+  --color-secondary: #8b5e6a;
+  --color-secondary-container: #f8d8db;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #3b1520;
+
+  /* Tertiary — Lavanda */
+  --color-tertiary: #6b5ea8;
+  --color-tertiary-container: #e6e6fa;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-container: #22005d;
+
+  /* Surfaces */
+  --color-background: #fefcf4;
+  --color-surface: #fefcf4;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #faf8f0;
+  --color-surface-container: #f5f2ea;
+  --color-surface-container-high: #eeece4;
+  --color-surface-container-highest: #e8e5dd;
+  --color-on-surface: #383833;
+  --color-on-surface-variant: #635f5a;
+
+  /* Outline */
+  --color-outline: #7f7b75;
+  --color-outline-variant: #c8c4bc;
+
+  /* Error */
+  --color-error: #be2d06;
+  --color-error-container: #f95630;
+  --color-on-error: #ffffff;
+
+  /* Font families */
+  --font-headline: "Plus Jakarta Sans", sans-serif;
+  --font-body: "Be Vietnam Pro", sans-serif;
+  --font-label: "Plus Jakarta Sans", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-background);
+  color: var(--color-on-surface);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  vertical-align: middle;
+  user-select: none;
+}
+
+.dog-ear {
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - 20px),
+    calc(100% - 20px) 100%,
+    0 100%
+  );
+}
+
+/* Timer animations */
+@keyframes timer-pulse {
+  0%, 100% { box-shadow: 0 0 0 0px var(--timer-color, #835e00); }
+  50%       { box-shadow: 0 0 0 4px var(--timer-color, #835e00); }
+}
+@keyframes tick-pop {
+  0%   { transform: scale(1);    opacity: 1; }
+  40%  { transform: scale(1.18); opacity: 0.8; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+@keyframes timer-warning-flash {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+
+.timer-running {
+  animation: timer-pulse 2s ease-in-out infinite;
+}
+.tick-pop {
+  animation: tick-pop 0.25s ease-out forwards;
+}
+.timer-warning {
+  animation: timer-warning-flash 1s ease-in-out infinite;
+}
+
+.glass {
+  background: rgba(254, 252, 244, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.btn-gradient {
+  background: linear-gradient(135deg, #007257, #89f0cb);
+  color: #ffffff;
+}
+
+.dog-ear-fold {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.07);
+  clip-path: polygon(0 0, 0 100%, 100% 0);
+}
