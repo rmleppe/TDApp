@@ -4,6 +4,7 @@ import { NotesProvider } from './context/NotesContext'
 import { TimerProvider } from './context/TimerContext'
 import NotesBoard from './pages/NotesBoard'
 import NoteDetail from './pages/NoteDetail'
+import ArchivePage from './pages/ArchivePage'
 import LoginPage from './pages/LoginPage'
 
 function AppRoutes() {
@@ -20,6 +21,7 @@ function AppRoutes() {
           <Route path="/" element={<Navigate to="/board" replace />} />
           <Route path="/board" element={<NotesBoard />} />
           <Route path="/note/:id" element={<NoteDetail />} />
+          <Route path="/archive" element={<ArchivePage />} />
         </Routes>
       </BrowserRouter>
     </NotesProvider>

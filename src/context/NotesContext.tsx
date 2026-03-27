@@ -32,6 +32,9 @@ interface NotesContextValue {
   loading: boolean
   addNote: (note: Note) => void
   updateNote: (updated: Note) => void
+  deleteNote: (id: string) => void
+  archiveNote: (id: string) => void
+  unarchiveNote: (id: string) => void
   reorderNotes: (fromIndex: number, toIndex: number) => void
   focusTasks: FocusTask[]
   addFocusTask: (text: string) => void
@@ -80,6 +83,18 @@ export function NotesProvider({ uid, children }: { uid: string; children: ReactN
     setDoc(ref, clean(updated), { merge: true })
   }
 
+  const deleteNote = (id: string) => {
+    deleteDoc(doc(db, 'users', uid, 'notes', id))
+  }
+
+  const archiveNote = (id: string) => {
+    updateDoc(doc(db, 'users', uid, 'notes', id), { archived: true })
+  }
+
+  const unarchiveNote = (id: string) => {
+    updateDoc(doc(db, 'users', uid, 'notes', id), { archived: false })
+  }
+
   const reorderNotes = (fromIndex: number, toIndex: number) => {
     const reordered = [...notes]
     const [moved] = reordered.splice(fromIndex, 1)
@@ -126,7 +141,7 @@ export function NotesProvider({ uid, children }: { uid: string; children: ReactN
 
   return (
     <NotesContext.Provider value={{
-      notes, loading, addNote, updateNote, reorderNotes,
+      notes, loading, addNote, updateNote, deleteNote, archiveNote, unarchiveNote, reorderNotes,
       focusTasks, addFocusTask, toggleFocusTask, editFocusTask, reorderFocusTasks, deleteFocusTask,
     }}>
       {children}

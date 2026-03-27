@@ -117,7 +117,7 @@ function CreateNoteModal({
             <div className="flex gap-3">
               {COLOR_OPTIONS.map((opt) => (
                 <button key={opt.value} type="button" onClick={() => setColor(opt.value)}
-                  className="w-10 h-10 rounded-full transition-transform hover:scale-110"
+                  className="w-10 h-10 rounded-full transition-transform hover:scale-110 cursor-pointer"
                   style={{
                     background: opt.hex,
                     outline: color === opt.value ? '3px solid #007257' : '3px solid transparent',
@@ -141,7 +141,7 @@ function CreateNoteModal({
                   key={ic}
                   type="button"
                   onClick={() => setIcon(ic)}
-                  className="w-9 h-9 rounded-lg flex items-center justify-center transition-all"
+                  className="w-9 h-9 rounded-lg flex items-center justify-center transition-all cursor-pointer"
                   style={{
                     background: icon === ic ? '#89f0cb' : '#f0ede5',
                     color: icon === ic ? '#00382a' : '#635f5a',
@@ -165,7 +165,7 @@ function CreateNoteModal({
             <div className="flex gap-3">
               {(['tasks', 'text'] as Note['type'][]).map((t) => (
                 <button key={t} type="button" onClick={() => setType(t)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm transition-colors cursor-pointer"
                   style={{
                     background: type === t ? '#89f0cb' : '#eeece4',
                     color: type === t ? '#00382a' : '#635f5a',
@@ -183,12 +183,12 @@ function CreateNoteModal({
           {/* Actions */}
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose}
-              className="flex-1 py-3 rounded-xl font-semibold"
+              className="flex-1 py-3 rounded-xl font-semibold cursor-pointer"
               style={{ background: '#eeece4', color: '#635f5a', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
               Cancelar
             </button>
             <button type="submit" disabled={!title.trim()}
-              className="flex-1 py-3 rounded-xl font-semibold transition-opacity"
+              className="flex-1 py-3 rounded-xl font-semibold transition-opacity cursor-pointer disabled:cursor-not-allowed"
               style={{
                 background: '#007257', color: '#ffffff',
                 fontFamily: 'Plus Jakarta Sans, sans-serif',
@@ -259,7 +259,8 @@ function SortableNoteCard({ note, onClick }: { note: Note; onClick: () => void }
 
 /* ── Board ────────────────────────────────────────────────────────── */
 export default function NotesBoard() {
-  const { notes, loading, addNote, reorderNotes } = useNotes()
+  const { notes: allNotes, loading, addNote, reorderNotes } = useNotes()
+  const notes = allNotes.filter((n) => !n.archived)
   const { user } = useAuth()
   const firstName = user?.displayName?.split(' ')[0] ?? ''
   const [showCreate, setShowCreate] = useState(false)
@@ -350,7 +351,7 @@ export default function NotesBoard() {
               {/* Create New Note */}
               <button
                 onClick={() => setShowCreate(true)}
-                className="group relative border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-3 min-h-[130px] transition-colors duration-200 active:scale-[0.98]"
+                className="group relative border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-3 min-h-[130px] transition-colors duration-200 active:scale-[0.98] cursor-pointer"
                 style={{ borderColor: '#c8c4bc', background: '#faf8f0' }}
                 onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = '#eeece4')}
                 onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.background = '#faf8f0')}

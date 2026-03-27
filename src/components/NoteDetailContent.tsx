@@ -9,7 +9,8 @@ export default function NoteDetailContent({
   note: Note
   onClose: () => void
 }) {
-  const { updateNote } = useNotes()
+  const { updateNote, deleteNote, archiveNote } = useNotes()
+  const [confirming, setConfirming] = useState<'delete' | 'archive' | null>(null)
 
   const [newTask, setNewTask] = useState('')
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
@@ -262,16 +263,54 @@ export default function NoteDetailContent({
             <span className="text-sm">Editado {note.editedAt}</span>
           </div>
         </div>
-        <div className="flex gap-4">
-          <button
-            className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors font-semibold cursor-pointer"
-            style={{ color: dc.accent }}
-            onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.3)')}
-            onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'transparent')}
-          >
-            <span className="material-symbols-outlined">delete</span>
-            <span>Archivar</span>
-          </button>
+        <div className="flex gap-2">
+          {confirming ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold" style={{ color: dc.accent, fontFamily: 'Be Vietnam Pro, sans-serif' }}>
+                {confirming === 'delete' ? '¿Eliminar nota?' : '¿Archivar nota?'}
+              </span>
+              <button
+                onClick={() => {
+                  if (confirming === 'delete') { deleteNote(note.id); onClose() }
+                  else { archiveNote(note.id); onClose() }
+                }}
+                className="px-3 py-1.5 rounded-lg text-sm font-bold cursor-pointer"
+                style={{ background: confirming === 'delete' ? '#c0392b' : dc.accent, color: '#fff', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+              >
+                Confirmar
+              </button>
+              <button
+                onClick={() => setConfirming(null)}
+                className="px-3 py-1.5 rounded-lg text-sm font-semibold cursor-pointer"
+                style={{ background: 'rgba(0,0,0,0.08)', color: dc.accent, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+              >
+                Cancelar
+              </button>
+            </div>
+          ) : (
+            <>
+              <button
+                onClick={() => setConfirming('archive')}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors font-semibold cursor-pointer"
+                style={{ color: dc.accent }}
+                onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.3)')}
+                onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'transparent')}
+              >
+                <span className="material-symbols-outlined">archive</span>
+                <span>Archivar</span>
+              </button>
+              <button
+                onClick={() => setConfirming('delete')}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors font-semibold cursor-pointer"
+                style={{ color: '#c0392b' }}
+                onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(192,57,43,0.08)')}
+                onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'transparent')}
+              >
+                <span className="material-symbols-outlined">delete</span>
+                <span>Eliminar</span>
+              </button>
+            </>
+          )}
         </div>
       </footer>
     </article>

@@ -15,6 +15,7 @@ export interface Note {
   tags?: string[]
   createdAt: string
   editedAt: string
+  archived?: boolean
 }
 
 
