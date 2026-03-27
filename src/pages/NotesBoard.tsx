@@ -366,7 +366,7 @@ export default function NotesBoard() {
       {/* FAB */}
       <button
         onClick={() => setShowCreate(true)}
-        className="fixed bottom-24 md:bottom-10 right-8 w-16 h-16 rounded-xl shadow-2xl flex items-center justify-center z-[60] transition-transform duration-200 active:scale-90"
+        className="fixed bottom-8 right-8 w-16 h-16 rounded-xl shadow-2xl flex items-center justify-center z-[60] transition-transform duration-200 active:scale-90"
         style={{ background: '#007257', color: '#ffffff' }}
       >
         <span className="material-symbols-outlined text-3xl">add</span>
