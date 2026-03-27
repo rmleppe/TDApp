@@ -22,6 +22,7 @@ interface NotesContextValue {
   addFocusTask: (text: string) => void
   toggleFocusTask: (id: string) => void
   editFocusTask: (id: string, text: string) => void
+  reorderFocusTasks: (fromIndex: number, toIndex: number) => void
   deleteFocusTask: (id: string) => void
 }
 
@@ -63,13 +64,22 @@ export function NotesProvider({ children }: { children: ReactNode }) {
   const editFocusTask = (id: string, text: string) =>
     setFocusTasks((prev) => prev.map((t) => t.id === id ? { ...t, text } : t))
 
+  const reorderFocusTasks = (fromIndex: number, toIndex: number) => {
+    setFocusTasks((prev) => {
+      const next = [...prev]
+      const [moved] = next.splice(fromIndex, 1)
+      next.splice(toIndex, 0, moved)
+      return next
+    })
+  }
+
   const deleteFocusTask = (id: string) =>
     setFocusTasks((prev) => prev.filter((t) => t.id !== id))
 
   return (
     <NotesContext.Provider value={{
       notes, addNote, updateNote, reorderNotes,
-      focusTasks, addFocusTask, toggleFocusTask, editFocusTask, deleteFocusTask,
+      focusTasks, addFocusTask, toggleFocusTask, editFocusTask, reorderFocusTasks, deleteFocusTask,
     }}>
       {children}
     </NotesContext.Provider>
