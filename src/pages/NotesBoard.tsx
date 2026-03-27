@@ -303,7 +303,7 @@ export default function NotesBoard() {
 
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           {/* Left: Focus Panel */}
-          <div className="w-full lg:w-[440px] flex-shrink-0">
+          <div className="w-full lg:w-[480px] flex-shrink-0">
             <FocusPanel />
           </div>
 

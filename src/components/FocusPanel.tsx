@@ -45,7 +45,7 @@ function SortableTask({
   return (
     <div
       ref={setNodeRef}
-      className="group flex items-center gap-3 p-3.5 rounded-xl transition-all duration-150"
+      className="group flex items-center gap-3 p-4 rounded-xl transition-all duration-150"
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
@@ -74,7 +74,7 @@ function SortableTask({
       {/* Checkbox */}
       <button
         onClick={onToggle}
-        className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 transition-all duration-150 border-2"
+        className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0 transition-all duration-150 border-2"
         style={{
           background: task.done ? '#007257' : 'transparent',
           borderColor: task.done ? '#007257' : '#c8c4bc',
@@ -112,7 +112,7 @@ function SortableTask({
           />
         ) : (
           <p
-            className="font-medium text-sm leading-snug cursor-text"
+            className="font-medium text-base leading-snug cursor-text"
             style={{
               color: task.done ? '#7f7b75' : '#383833',
               textDecoration: task.done ? 'line-through' : 'none',
@@ -122,6 +122,14 @@ function SortableTask({
           >
             {task.text}
           </p>
+        )}
+        {task.done && (
+          <span
+            className="text-[10px] font-bold uppercase tracking-wider"
+            style={{ color: '#007257', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+          >
+            Completado
+          </span>
         )}
       </div>
 
@@ -149,7 +157,10 @@ export default function FocusPanel() {
   const inputRef = useRef<HTMLInputElement>(null)
   const editRef = useRef<HTMLInputElement>(null)
 
-  const pending = focusTasks.filter((t) => !t.done).length
+  const total = focusTasks.length
+  const doneCount = focusTasks.filter((t) => t.done).length
+  const pending = total - doneCount
+  const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
@@ -187,7 +198,7 @@ export default function FocusPanel() {
 
   return (
     <div
-      className="sticky top-24 rounded-2xl p-5 flex flex-col gap-3"
+      className="sticky top-24 rounded-2xl p-7 flex flex-col gap-4"
       style={{
         background: '#f2efe6',
         border: '1px solid #e8e5dd',
@@ -197,17 +208,17 @@ export default function FocusPanel() {
       {/* Header */}
       <div className="flex items-center justify-between mb-1">
         <h2
-          className="font-bold text-lg flex items-center gap-2"
+          className="font-bold text-2xl flex items-center gap-2"
           style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: '#383833' }}
         >
-          <span className="material-symbols-outlined text-[20px]" style={{ color: '#007257' }}>
+          <span className="material-symbols-outlined text-[26px]" style={{ color: '#007257' }}>
             rocket
           </span>
           Today's Focus
         </h2>
         {pending > 0 && (
           <span
-            className="text-[11px] font-bold px-2.5 py-0.5 rounded-full"
+            className="text-xs font-bold px-3 py-1 rounded-full"
             style={{
               background: 'rgba(0,114,87,0.1)',
               color: '#007257',
@@ -219,6 +230,29 @@ export default function FocusPanel() {
           </span>
         )}
       </div>
+
+      {/* Progress bar */}
+      {total > 0 && (
+        <div className="px-1">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-sm font-semibold" style={{ color: '#7f7b75', fontFamily: 'Be Vietnam Pro, sans-serif' }}>
+              {doneCount} Completada{doneCount !== 1 ? 's' : ''} · {pending} Pendiente{pending !== 1 ? 's' : ''}
+            </span>
+            <span
+              className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+              style={{ background: 'rgba(0,114,87,0.1)', color: '#007257', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+            >
+              {pct}% LISTO
+            </span>
+          </div>
+          <div className="h-2 rounded-full overflow-hidden" style={{ background: '#e8e5dd' }}>
+            <div
+              className="h-full rounded-full transition-all duration-500"
+              style={{ width: `${pct}%`, background: '#007257' }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Task list */}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -258,7 +292,7 @@ export default function FocusPanel() {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
           placeholder="Añadir tarea de enfoque..."
-          className="flex-1 bg-transparent outline-none text-sm font-medium placeholder:text-[#c8c4bc]"
+          className="flex-1 bg-transparent outline-none text-base font-medium placeholder:text-[#c8c4bc]"
           style={{ color: '#383833', fontFamily: 'Be Vietnam Pro, sans-serif' }}
           onFocus={(e) => {
             const icon = e.currentTarget.previousElementSibling as HTMLElement
