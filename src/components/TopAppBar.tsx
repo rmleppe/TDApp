@@ -287,7 +287,7 @@ export default function TopAppBar() {
             className="text-2xl font-black tracking-tighter"
             style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: '#007257' }}
           >
-            Personal Notes
+            TDApp
           </Link>
           <nav className="hidden md:flex gap-6">
             {navLinks.map(({ label, path }) => {
@@ -296,7 +296,7 @@ export default function TopAppBar() {
                 <Link
                   key={label}
                   to={path}
-                  className="font-bold text-lg tracking-tight transition-colors duration-200 px-2 rounded"
+                  className="font-bold text-lg tracking-tight transition-colors duration-200 px-2 rounded-t"
                   style={{
                     fontFamily: 'Plus Jakarta Sans, sans-serif',
                     color: active ? '#007257' : '#635f5a',

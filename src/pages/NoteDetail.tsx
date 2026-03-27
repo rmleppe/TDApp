@@ -120,12 +120,30 @@ export default function NoteDetail() {
                   Nota Principal
                 </span>
               </div>
-              <h1
-                className="text-4xl md:text-5xl font-extrabold tracking-tight"
-                style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: dc.title }}
-              >
-                {note.title}
-              </h1>
+              <input
+                type="text"
+                defaultValue={note.title}
+                onBlur={(e) => {
+                  const val = e.target.value.trim()
+                  if (val && val !== note.title) patchNote({ title: val })
+                  else e.target.value = note.title
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+                  if (e.key === 'Escape') {
+                    ;(e.target as HTMLInputElement).value = note.title
+                    ;(e.target as HTMLInputElement).blur()
+                  }
+                }}
+                className="text-4xl md:text-5xl font-extrabold tracking-tight bg-transparent outline-none w-full"
+                style={{
+                  fontFamily: 'Plus Jakarta Sans, sans-serif',
+                  color: dc.title,
+                  borderBottom: '2px solid transparent',
+                }}
+                onFocus={(e) => (e.target.style.borderBottomColor = dc.accent)}
+                onBlurCapture={(e) => (e.target.style.borderBottomColor = 'transparent')}
+              />
               {tasks.length > 0 && (
                 <p className="mt-2 text-sm font-medium" style={{ color: dc.accent }}>
                   {doneCount} de {tasks.length} tareas completadas

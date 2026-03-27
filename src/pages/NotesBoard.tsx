@@ -295,7 +295,7 @@ export default function NotesBoard() {
         <header className="mb-10">
           <h1 className="text-4xl font-extrabold tracking-tight"
             style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: '#383833' }}>
-            Buenos días, Alex
+            Buenos días, Rodri
           </h1>
           <p className="mt-2 text-lg" style={{ color: '#635f5a' }}>
             Tienes {notes.filter((n) => n.type === 'tasks').length} notas con tareas activas.

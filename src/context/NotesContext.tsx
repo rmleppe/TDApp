@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import { NOTES, type Note } from '../data/notes'
 
 export interface FocusTask {
@@ -28,8 +28,15 @@ interface NotesContextValue {
 const NotesContext = createContext<NotesContextValue | null>(null)
 
 export function NotesProvider({ children }: { children: ReactNode }) {
-  const [notes, setNotes] = useState<Note[]>(NOTES)
-  const [focusTasks, setFocusTasks] = useState<FocusTask[]>(INITIAL_FOCUS_TASKS)
+  const [notes, setNotes] = useState<Note[]>(() =>
+    JSON.parse(localStorage.getItem('notes') ?? 'null') ?? NOTES
+  )
+  const [focusTasks, setFocusTasks] = useState<FocusTask[]>(() =>
+    JSON.parse(localStorage.getItem('focusTasks') ?? 'null') ?? INITIAL_FOCUS_TASKS
+  )
+
+  useEffect(() => { localStorage.setItem('notes', JSON.stringify(notes)) }, [notes])
+  useEffect(() => { localStorage.setItem('focusTasks', JSON.stringify(focusTasks)) }, [focusTasks])
 
   const addNote = (note: Note) => setNotes((prev) => [...prev, note])
 
