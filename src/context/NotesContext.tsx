@@ -1,17 +1,31 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
-import { NOTES, type Note } from '../data/notes'
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import {
+  collection,
+  doc,
+  onSnapshot,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  writeBatch,
+  query,
+  orderBy,
+} from 'firebase/firestore'
+import { db } from '../lib/firebase'
+import { type Note } from '../data/notes'
+
+// Firestore rejects undefined values — strip them before writing
+function clean<T extends object>(obj: T): T {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([, v]) => v !== undefined)
+  ) as T
+}
 
 export interface FocusTask {
   id: string
   text: string
   done: boolean
+  order: number
 }
-
-const INITIAL_FOCUS_TASKS: FocusTask[] = [
-  { id: 'f1', text: 'Revisar componentes de UI para el lanzamiento', done: false },
-  { id: 'f2', text: 'Coordinar con el equipo de marketing', done: false },
-  { id: 'f3', text: 'Standup matutino', done: true },
-]
 
 interface NotesContextValue {
   notes: Note[]
@@ -28,53 +42,81 @@ interface NotesContextValue {
 
 const NotesContext = createContext<NotesContextValue | null>(null)
 
-export function NotesProvider({ children }: { children: ReactNode }) {
-  const [notes, setNotes] = useState<Note[]>(() =>
-    JSON.parse(localStorage.getItem('notes') ?? 'null') ?? NOTES
-  )
-  const [focusTasks, setFocusTasks] = useState<FocusTask[]>(() =>
-    JSON.parse(localStorage.getItem('focusTasks') ?? 'null') ?? INITIAL_FOCUS_TASKS
-  )
+export function NotesProvider({ uid, children }: { uid: string; children: ReactNode }) {
+  const [notes, setNotes] = useState<Note[]>([])
+  const [focusTasks, setFocusTasks] = useState<FocusTask[]>([])
 
-  useEffect(() => { localStorage.setItem('notes', JSON.stringify(notes)) }, [notes])
-  useEffect(() => { localStorage.setItem('focusTasks', JSON.stringify(focusTasks)) }, [focusTasks])
+  // Real-time listener — notes ordered by `order` field
+  useEffect(() => {
+    const q = query(collection(db, 'users', uid, 'notes'), orderBy('order'))
+    return onSnapshot(q, (snap) => {
+      setNotes(snap.docs.map((d) => d.data() as Note))
+    })
+  }, [uid])
 
-  const addNote = (note: Note) => setNotes((prev) => [...prev, note])
+  // Real-time listener — focusTasks ordered by `order` field
+  useEffect(() => {
+    const q = query(collection(db, 'users', uid, 'focusTasks'), orderBy('order'))
+    return onSnapshot(q, (snap) => {
+      setFocusTasks(snap.docs.map((d) => d.data() as FocusTask))
+    })
+  }, [uid])
 
-  const updateNote = (updated: Note) =>
-    setNotes((prev) => prev.map((n) => (n.id === updated.id ? updated : n)))
+  /* ── Notes actions ─────────────────────────────────────────────── */
+
+  const addNote = (note: Note) => {
+    const ref = doc(db, 'users', uid, 'notes', note.id)
+    setDoc(ref, clean({ ...note, order: notes.length }))
+  }
+
+  const updateNote = (updated: Note) => {
+    const ref = doc(db, 'users', uid, 'notes', updated.id)
+    setDoc(ref, clean(updated), { merge: true })
+  }
 
   const reorderNotes = (fromIndex: number, toIndex: number) => {
-    setNotes((prev) => {
-      const next = [...prev]
-      const [moved] = next.splice(fromIndex, 1)
-      next.splice(toIndex, 0, moved)
-      return next
+    const reordered = [...notes]
+    const [moved] = reordered.splice(fromIndex, 1)
+    reordered.splice(toIndex, 0, moved)
+    const batch = writeBatch(db)
+    reordered.forEach((n, i) => {
+      batch.update(doc(db, 'users', uid, 'notes', n.id), { order: i })
     })
+    batch.commit()
   }
 
-  const addFocusTask = (text: string) =>
-    setFocusTasks((prev) => [...prev, { id: `f${Date.now()}`, text, done: false }])
+  /* ── FocusTask actions ─────────────────────────────────────────── */
 
-  const toggleFocusTask = (id: string) =>
-    setFocusTasks((prev) =>
-      prev.map((t) => t.id === id ? { ...t, done: !t.done } : t)
-    )
+  const addFocusTask = (text: string) => {
+    const id = `f${Date.now()}`
+    const ref = doc(db, 'users', uid, 'focusTasks', id)
+    setDoc(ref, { id, text, done: false, order: focusTasks.length })
+  }
 
-  const editFocusTask = (id: string, text: string) =>
-    setFocusTasks((prev) => prev.map((t) => t.id === id ? { ...t, text } : t))
+  const toggleFocusTask = (id: string) => {
+    const task = focusTasks.find((t) => t.id === id)
+    if (!task) return
+    updateDoc(doc(db, 'users', uid, 'focusTasks', id), { done: !task.done })
+  }
+
+  const editFocusTask = (id: string, text: string) => {
+    updateDoc(doc(db, 'users', uid, 'focusTasks', id), { text })
+  }
 
   const reorderFocusTasks = (fromIndex: number, toIndex: number) => {
-    setFocusTasks((prev) => {
-      const next = [...prev]
-      const [moved] = next.splice(fromIndex, 1)
-      next.splice(toIndex, 0, moved)
-      return next
+    const reordered = [...focusTasks]
+    const [moved] = reordered.splice(fromIndex, 1)
+    reordered.splice(toIndex, 0, moved)
+    const batch = writeBatch(db)
+    reordered.forEach((t, i) => {
+      batch.update(doc(db, 'users', uid, 'focusTasks', t.id), { order: i })
     })
+    batch.commit()
   }
 
-  const deleteFocusTask = (id: string) =>
-    setFocusTasks((prev) => prev.filter((t) => t.id !== id))
+  const deleteFocusTask = (id: string) => {
+    deleteDoc(doc(db, 'users', uid, 'focusTasks', id))
+  }
 
   return (
     <NotesContext.Provider value={{

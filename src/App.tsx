@@ -1,13 +1,20 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import { NotesProvider } from './context/NotesContext'
 import { TimerProvider } from './context/TimerContext'
 import NotesBoard from './pages/NotesBoard'
 import NoteDetail from './pages/NoteDetail'
+import LoginPage from './pages/LoginPage'
 
-export default function App() {
+function AppRoutes() {
+  const { user, loading } = useAuth()
+
+  if (loading) return null
+
+  if (!user) return <LoginPage />
+
   return (
-    <TimerProvider>
-    <NotesProvider>
+    <NotesProvider uid={user.uid}>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Navigate to="/board" replace />} />
@@ -16,6 +23,15 @@ export default function App() {
         </Routes>
       </BrowserRouter>
     </NotesProvider>
-    </TimerProvider>
+  )
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <TimerProvider>
+        <AppRoutes />
+      </TimerProvider>
+    </AuthProvider>
   )
 }

@@ -7,6 +7,7 @@ import {
   type TimerMode,
   type TimerPreset,
 } from '../context/TimerContext'
+import { useAuth } from '../context/AuthContext'
 
 /* ── helpers ──────────────────────────────────────────────────────── */
 const fmt = (s: number) =>
@@ -270,6 +271,7 @@ function TimerPanel({ onClose }: { onClose: () => void }) {
 export default function TopAppBar() {
   const [panelOpen, setPanelOpen] = useState(false)
   const location = useLocation()
+  const { user, logout } = useAuth()
 
   const navLinks = [
     { label: 'Focus',    path: '/board'    },
@@ -321,12 +323,18 @@ export default function TopAppBar() {
 
         {/* Right: Avatar */}
         <div className="hidden md:flex justify-end">
-          <div
-            className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm select-none flex-shrink-0"
+          <button
+            onClick={logout}
+            className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm select-none flex-shrink-0 cursor-pointer overflow-hidden transition-opacity hover:opacity-80"
             style={{ background: '#89f0cb', color: '#00382a', fontFamily: 'Plus Jakarta Sans, sans-serif', border: '2px solid #89f0cb' }}
+            title="Cerrar sesión"
           >
-            A
-          </div>
+            {user?.photoURL ? (
+              <img src={user.photoURL} alt="avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            ) : (
+              user?.displayName?.[0]?.toUpperCase() ?? 'U'
+            )}
+          </button>
         </div>
       </div>
     </header>
