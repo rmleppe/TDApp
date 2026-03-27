@@ -31,7 +31,7 @@ function TimerPill({ onTogglePanel }: { onTogglePanel: () => void }) {
 
   return (
     <div
-      className="relative flex items-center gap-3 px-4 py-2 rounded-xl overflow-hidden select-none"
+      className="relative flex items-center gap-1.5 md:gap-3 px-2.5 md:px-4 py-1.5 md:py-2 rounded-xl overflow-hidden select-none"
       style={{
         background: c.bg,
         boxShadow: `0 0 0 0px ${glowColor}`,
@@ -60,7 +60,7 @@ function TimerPill({ onTogglePanel }: { onTogglePanel: () => void }) {
 
       {/* Mode icon — spins once when switching mode */}
       <span
-        className="material-symbols-outlined text-[18px] relative z-10 flex-shrink-0 transition-transform duration-300"
+        className="material-symbols-outlined text-[14px] md:text-[18px] relative z-10 flex-shrink-0 transition-transform duration-300"
         style={{
           color: isWarning ? '#be2d06' : c.accent,
           transform: running ? 'rotate(0deg)' : 'rotate(0deg)',
@@ -77,7 +77,7 @@ function TimerPill({ onTogglePanel }: { onTogglePanel: () => void }) {
       >
         <span
           className={[
-            'font-bold tabular-nums text-base inline-block',
+            'font-bold tabular-nums text-sm md:text-base inline-block',
             isWarning ? 'timer-warning' : '',
           ].join(' ')}
           style={{
@@ -103,7 +103,7 @@ function TimerPill({ onTogglePanel }: { onTogglePanel: () => void }) {
           style={{ color: isWarning ? '#be2d06' : c.accent }}
           title={running ? 'Pausar' : 'Iniciar'}
         >
-          <span className="material-symbols-outlined text-[20px]">
+          <span className="material-symbols-outlined text-[16px] md:text-[20px]">
             {running ? 'pause' : 'play_arrow'}
           </span>
         </button>
@@ -113,7 +113,7 @@ function TimerPill({ onTogglePanel }: { onTogglePanel: () => void }) {
           style={{ color: isWarning ? '#be2d06' : c.accent }}
           title="Reiniciar"
         >
-          <span className="material-symbols-outlined text-[20px]">restart_alt</span>
+          <span className="material-symbols-outlined text-[16px] md:text-[20px]">restart_alt</span>
         </button>
       </div>
     </div>
@@ -281,12 +281,12 @@ export default function TopAppBar() {
 
   return (
     <header className="glass sticky top-0 z-50" style={{ borderBottom: '1px solid rgba(200,196,188,0.3)' }}>
-      <div className="grid grid-cols-[1fr_auto] md:grid-cols-3 items-center w-full px-6 py-3 max-w-screen-2xl mx-auto">
+      <div className="grid grid-cols-3 items-center w-full px-6 py-3 max-w-screen-2xl mx-auto">
         {/* Left: Logo + Nav */}
         <div className="flex items-center gap-8">
           <Link
             to="/board"
-            className="text-2xl font-black tracking-tighter"
+            className="text-lg md:text-2xl font-black tracking-tighter"
             style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: '#007257' }}
           >
             TDApp
@@ -322,7 +322,7 @@ export default function TopAppBar() {
         </div>
 
         {/* Right: Avatar */}
-        <div className="hidden md:flex justify-end">
+        <div className="flex justify-end">
           <button
             onClick={logout}
             className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm select-none flex-shrink-0 cursor-pointer overflow-hidden transition-opacity hover:opacity-80"
