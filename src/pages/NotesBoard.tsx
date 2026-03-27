@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useAuth } from '../context/AuthContext'
 import FocusPanel from '../components/FocusPanel'
 import NoteDetailContent from '../components/NoteDetailContent'
 import {
@@ -259,6 +260,8 @@ function SortableNoteCard({ note, onClick }: { note: Note; onClick: () => void }
 /* ── Board ────────────────────────────────────────────────────────── */
 export default function NotesBoard() {
   const { notes, addNote, reorderNotes } = useNotes()
+  const { user } = useAuth()
+  const firstName = user?.displayName?.split(' ')[0] ?? ''
   const [showCreate, setShowCreate] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null)
@@ -301,7 +304,7 @@ export default function NotesBoard() {
         <header className="mb-10">
           <h1 className="text-4xl font-extrabold tracking-tight"
             style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: '#383833' }}>
-            Buenos días, Rodri
+            Buenos días, {firstName}
           </h1>
           <p className="mt-2 text-lg" style={{ color: '#635f5a' }}>
             Tienes {notes.filter((n) => n.type === 'tasks').length} notas con tareas activas.
