@@ -270,8 +270,20 @@ function TimerPanel({ onClose }: { onClose: () => void }) {
 /* ── TopAppBar ───────────────────────────────────────────────────── */
 export default function TopAppBar() {
   const [panelOpen, setPanelOpen] = useState(false)
+  const [avatarOpen, setAvatarOpen] = useState(false)
   const location = useLocation()
   const { user, logout } = useAuth()
+  const avatarRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (avatarRef.current && !avatarRef.current.contains(e.target as Node)) {
+        setAvatarOpen(false)
+      }
+    }
+    if (avatarOpen) document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [avatarOpen])
 
   const navLinks = [
     { label: 'Focus',    path: '/board'    },
@@ -321,20 +333,48 @@ export default function TopAppBar() {
           </div>
         </div>
 
-        {/* Right: Avatar */}
-        <div className="flex justify-end">
-          <button
-            onClick={logout}
-            className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm select-none flex-shrink-0 cursor-pointer overflow-hidden transition-opacity hover:opacity-80"
-            style={{ background: '#89f0cb', color: '#00382a', fontFamily: 'Plus Jakarta Sans, sans-serif', border: '2px solid #89f0cb' }}
-            title="Cerrar sesión"
-          >
-            {user?.photoURL ? (
-              <img src={user.photoURL} alt="avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-            ) : (
-              user?.displayName?.[0]?.toUpperCase() ?? 'U'
+        {/* Right: Avatar + dropdown */}
+        <div className="flex justify-end" ref={avatarRef}>
+          <div className="relative">
+            <button
+              onClick={() => setAvatarOpen((o) => !o)}
+              className="w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold text-sm select-none flex-shrink-0 cursor-pointer overflow-hidden transition-opacity hover:opacity-80"
+              style={{ background: '#89f0cb', color: '#00382a', fontFamily: 'Plus Jakarta Sans, sans-serif', border: '2px solid #89f0cb' }}
+            >
+              {user?.photoURL ? (
+                <img src={user.photoURL} alt="avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              ) : (
+                user?.displayName?.[0]?.toUpperCase() ?? 'U'
+              )}
+            </button>
+
+            {avatarOpen && (
+              <div
+                className="absolute right-0 top-full mt-2 w-52 rounded-2xl p-3 z-[200] shadow-2xl"
+                style={{ background: '#fefcf4', border: '1px solid #e8e5dd' }}
+              >
+                <div className="px-2 py-1.5 mb-2">
+                  <p className="text-sm font-bold truncate" style={{ color: '#383833', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+                    {user?.displayName}
+                  </p>
+                  <p className="text-xs truncate" style={{ color: '#82807c', fontFamily: 'Be Vietnam Pro, sans-serif' }}>
+                    {user?.email}
+                  </p>
+                </div>
+                <div style={{ borderTop: '1px solid #e8e5dd', marginBottom: '8px' }} />
+                <button
+                  onClick={() => { setAvatarOpen(false); logout() }}
+                  className="w-full flex items-center gap-2 px-2 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
+                  style={{ color: '#635f5a', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                  onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = '#f0ede5')}
+                  onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'transparent')}
+                >
+                  <span className="material-symbols-outlined text-[18px]">logout</span>
+                  Cerrar sesión
+                </button>
+              </div>
             )}
-          </button>
+          </div>
         </div>
       </div>
     </header>
