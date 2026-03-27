@@ -30,7 +30,7 @@ function TimerPill({ onTogglePanel }: { onTogglePanel: () => void }) {
 
   return (
     <div
-      className="relative flex items-center gap-3 px-4 py-2 rounded-xl overflow-hidden select-none cursor-default"
+      className="relative flex items-center gap-3 px-4 py-2 rounded-xl overflow-hidden select-none"
       style={{
         background: c.bg,
         boxShadow: `0 0 0 0px ${glowColor}`,
@@ -71,7 +71,7 @@ function TimerPill({ onTogglePanel }: { onTogglePanel: () => void }) {
       {/* Time — key trick triggers tick-pop CSS animation each second */}
       <button
         onClick={onTogglePanel}
-        className="relative z-10 flex-shrink-0"
+        className="relative z-10 flex-shrink-0 cursor-pointer"
         title="Configurar timer"
       >
         <span
@@ -98,7 +98,7 @@ function TimerPill({ onTogglePanel }: { onTogglePanel: () => void }) {
       <div className="flex gap-0.5 relative z-10">
         <button
           onClick={running ? pause : play}
-          className="p-1 rounded-lg transition-all duration-150 active:scale-75 hover:scale-110"
+          className="p-1 rounded-lg transition-all duration-150 active:scale-75 hover:scale-110 cursor-pointer"
           style={{ color: isWarning ? '#be2d06' : c.accent }}
           title={running ? 'Pausar' : 'Iniciar'}
         >
@@ -108,7 +108,7 @@ function TimerPill({ onTogglePanel }: { onTogglePanel: () => void }) {
         </button>
         <button
           onClick={reset}
-          className="p-1 rounded-lg transition-all duration-150 active:scale-75 hover:scale-110 hover:rotate-[-30deg]"
+          className="p-1 rounded-lg transition-all duration-150 active:scale-75 hover:scale-110 hover:rotate-[-30deg] cursor-pointer"
           style={{ color: isWarning ? '#be2d06' : c.accent }}
           title="Reiniciar"
         >

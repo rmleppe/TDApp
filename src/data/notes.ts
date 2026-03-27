@@ -8,7 +8,7 @@ export interface Note {
   id: string
   title: string
   icon: string
-  color: 'green' | 'amber' | 'blue' | 'gray'
+  color: 'green' | 'amber' | 'blue' | 'gray' | 'rose' | 'lavender' | 'peach' | 'mint'
   type: 'tasks' | 'text'
   content?: string
   tasks?: Task[]
@@ -124,6 +124,42 @@ export const DETAIL_COLORS = {
     checkBorder: '#82807c',
     checkDone: '#82807c',
   },
+  rose: {
+    bg: '#ffd6e0',
+    title: '#7a2035',
+    accent: '#9e3050',
+    primary: '#9e3050',
+    border: 'rgba(158,48,80,0.1)',
+    checkBorder: '#9e3050',
+    checkDone: '#9e3050',
+  },
+  lavender: {
+    bg: '#e6e0ff',
+    title: '#3b2d7a',
+    accent: '#5648a8',
+    primary: '#5648a8',
+    border: 'rgba(86,72,168,0.1)',
+    checkBorder: '#5648a8',
+    checkDone: '#5648a8',
+  },
+  peach: {
+    bg: '#ffe4cc',
+    title: '#7a3a00',
+    accent: '#a85200',
+    primary: '#a85200',
+    border: 'rgba(168,82,0,0.1)',
+    checkBorder: '#a85200',
+    checkDone: '#a85200',
+  },
+  mint: {
+    bg: '#ccf5ee',
+    title: '#0f5449',
+    accent: '#1a7a6a',
+    primary: '#1a7a6a',
+    border: 'rgba(26,122,106,0.1)',
+    checkBorder: '#1a7a6a',
+    checkDone: '#1a7a6a',
+  },
 } as const
 
 export const COLOR_MAP = {
@@ -158,5 +194,37 @@ export const COLOR_MAP = {
     text: 'text-[#656461]',
     check: 'border-[#82807c]/40',
     checkDone: 'bg-[#82807c]',
+  },
+  rose: {
+    bg: 'bg-[#ffd6e0]',
+    title: 'text-[#7a2035]',
+    icon: 'text-[#9e3050]/40',
+    text: 'text-[#9e3050]/80',
+    check: 'border-[#9e3050]/30',
+    checkDone: 'bg-[#9e3050]',
+  },
+  lavender: {
+    bg: 'bg-[#e6e0ff]',
+    title: 'text-[#3b2d7a]',
+    icon: 'text-[#5648a8]/40',
+    text: 'text-[#5648a8]/80',
+    check: 'border-[#5648a8]/30',
+    checkDone: 'bg-[#5648a8]',
+  },
+  peach: {
+    bg: 'bg-[#ffe4cc]',
+    title: 'text-[#7a3a00]',
+    icon: 'text-[#a85200]/40',
+    text: 'text-[#a85200]/80',
+    check: 'border-[#a85200]/30',
+    checkDone: 'bg-[#a85200]',
+  },
+  mint: {
+    bg: 'bg-[#ccf5ee]',
+    title: 'text-[#0f5449]',
+    icon: 'text-[#1a7a6a]/40',
+    text: 'text-[#1a7a6a]/80',
+    check: 'border-[#1a7a6a]/30',
+    checkDone: 'bg-[#1a7a6a]',
   },
 } as const

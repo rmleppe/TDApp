@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import FocusPanel from '../components/FocusPanel'
+import NoteDetailContent from '../components/NoteDetailContent'
 import {
   DndContext,
   DragOverlay,
@@ -23,13 +23,24 @@ import { useNotes } from '../context/NotesContext'
 
 /* ── Color picker options ─────────────────────────────────────────── */
 const COLOR_OPTIONS: Array<{ value: Note['color']; hex: string; label: string }> = [
-  { value: 'amber', hex: '#ffd98e', label: 'Ámbar'  },
-  { value: 'green', hex: '#e8ffcc', label: 'Verde'  },
-  { value: 'blue',  hex: '#cce0ff', label: 'Azul'   },
-  { value: 'gray',  hex: '#eae8e2', label: 'Gris'   },
+  { value: 'amber',    hex: '#ffd98e', label: 'Ámbar'    },
+  { value: 'green',    hex: '#e8ffcc', label: 'Verde'    },
+  { value: 'blue',     hex: '#cce0ff', label: 'Azul'     },
+  { value: 'gray',     hex: '#eae8e2', label: 'Gris'     },
+  { value: 'rose',     hex: '#ffd6e0', label: 'Rosa'     },
+  { value: 'lavender', hex: '#e6e0ff', label: 'Lavanda'  },
+  { value: 'peach',    hex: '#ffe4cc', label: 'Durazno'  },
+  { value: 'mint',     hex: '#ccf5ee', label: 'Menta'    },
 ]
 
 /* ── Create Note Modal ────────────────────────────────────────────── */
+const ICON_OPTIONS = [
+  'check_circle', 'sticky_note_2', 'star', 'bookmark',
+  'bolt', 'favorite', 'flag', 'rocket',
+  'work', 'school', 'fitness_center', 'shopping_cart',
+  'lightbulb', 'travel_explore', 'code', 'music_note',
+]
+
 function CreateNoteModal({
   onClose,
   onCreate,
@@ -40,6 +51,7 @@ function CreateNoteModal({
   const [title, setTitle] = useState('')
   const [color, setColor] = useState<Note['color']>('amber')
   const [type, setType]   = useState<Note['type']>('tasks')
+  const [icon, setIcon]   = useState('check_circle')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -47,7 +59,7 @@ function CreateNoteModal({
     const newNote: Note = {
       id: `note-${Date.now()}`,
       title: title.trim(),
-      icon: type === 'tasks' ? 'check_circle' : 'sticky_note_2',
+      icon,
       color,
       type,
       tasks:   type === 'tasks' ? ([] as Task[]) : undefined,
@@ -116,6 +128,33 @@ function CreateNoteModal({
             </div>
           </div>
 
+          {/* Icon */}
+          <div>
+            <label className="block text-sm font-semibold mb-3"
+              style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: '#635f5a' }}>
+              Ícono
+            </label>
+            <div className="grid grid-cols-8 gap-2">
+              {ICON_OPTIONS.map((ic) => (
+                <button
+                  key={ic}
+                  type="button"
+                  onClick={() => setIcon(ic)}
+                  className="w-9 h-9 rounded-lg flex items-center justify-center transition-all"
+                  style={{
+                    background: icon === ic ? '#89f0cb' : '#f0ede5',
+                    color: icon === ic ? '#00382a' : '#635f5a',
+                    outline: icon === ic ? '2px solid #007257' : '2px solid transparent',
+                    outlineOffset: '1px',
+                  }}
+                  title={ic}
+                >
+                  <span className="material-symbols-outlined text-[18px]">{ic}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Type */}
           <div>
             <label className="block text-sm font-semibold mb-3"
@@ -163,29 +202,13 @@ function CreateNoteModal({
   )
 }
 
-/* ── Mini checkbox (board preview) ───────────────────────────────── */
-function MiniCheckbox({ done, color }: { done: boolean; color: keyof typeof COLOR_MAP }) {
-  const c = COLOR_MAP[color]
-  return (
-    <div className={`w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0 ${
-      done ? c.checkDone : `border-2 ${c.check} bg-transparent`
-    }`}>
-      {done && (
-        <span className="material-symbols-outlined text-white"
-          style={{ fontSize: '13px', fontVariationSettings: "'FILL' 1" }}>
-          check
-        </span>
-      )}
-    </div>
-  )
-}
 
 /* ── Note card content (shared between sortable & overlay) ───────── */
 function NoteCardContent({ note, faded = false }: { note: Note; faded?: boolean }) {
   const c = COLOR_MAP[note.color]
   return (
     <div
-      className={`relative ${c.bg} p-6 rounded-xl dog-ear flex flex-col gap-4 min-h-[240px] h-full`}
+      className={`relative ${c.bg} p-6 rounded-xl dog-ear flex flex-col gap-4 min-h-[130px] h-full`}
       style={{ opacity: faded ? 0.35 : 1 }}
     >
       <div className="flex justify-between items-start">
@@ -198,24 +221,6 @@ function NoteCardContent({ note, faded = false }: { note: Note; faded?: boolean 
         </span>
       </div>
 
-      {note.type === 'tasks' && note.tasks && (
-        <ul className="flex flex-col gap-3">
-          {note.tasks.map((task) => (
-            <li key={task.id} className="flex items-center gap-3">
-              <MiniCheckbox done={task.done} color={note.color} />
-              <span className={`font-medium text-sm ${task.done ? `${c.text} line-through` : c.title}`}>
-                {task.text}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {note.type === 'text' && note.content && (
-        <p className={`${c.text} leading-relaxed font-medium italic whitespace-pre-line`}>
-          {note.content}
-        </p>
-      )}
 
       {note.tags && note.tags.length > 0 && (
         <div className="mt-auto flex gap-2 flex-wrap">
@@ -253,10 +258,10 @@ function SortableNoteCard({ note, onClick }: { note: Note; onClick: () => void }
 
 /* ── Board ────────────────────────────────────────────────────────── */
 export default function NotesBoard() {
-  const navigate = useNavigate()
   const { notes, addNote, reorderNotes } = useNotes()
   const [showCreate, setShowCreate] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
+  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null)
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } })
@@ -280,8 +285,10 @@ export default function NotesBoard() {
   const handleCreate = (note: Note) => {
     addNote(note)
     setShowCreate(false)
-    navigate(`/note/${note.id}`)
+    setSelectedNoteId(note.id)
   }
+
+  const selectedNote = selectedNoteId ? notes.find((n) => n.id === selectedNoteId) : null
 
   return (
     <div className="min-h-screen" style={{ background: '#fefcf4', color: '#383833' }}>
@@ -303,12 +310,12 @@ export default function NotesBoard() {
 
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           {/* Left: Focus Panel */}
-          <div className="w-full lg:w-[480px] flex-shrink-0">
+          <div className="w-full lg:w-[560px] flex-shrink-0">
             <FocusPanel />
           </div>
 
           {/* Right: Notes grid */}
-          <div className="flex-1 min-w-0">
+          <div className="w-full flex-1 min-w-0">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -321,14 +328,14 @@ export default function NotesBoard() {
                 <SortableNoteCard
                   key={note.id}
                   note={note}
-                  onClick={() => !activeId && navigate(`/note/${note.id}`)}
+                  onClick={() => !activeId && setSelectedNoteId(note.id)}
                 />
               ))}
 
               {/* Create New Note */}
               <button
                 onClick={() => setShowCreate(true)}
-                className="group relative border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-3 min-h-[240px] transition-colors duration-200 active:scale-[0.98]"
+                className="group relative border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-3 min-h-[130px] transition-colors duration-200 active:scale-[0.98]"
                 style={{ borderColor: '#c8c4bc', background: '#faf8f0' }}
                 onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = '#eeece4')}
                 onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.background = '#faf8f0')}
@@ -364,13 +371,28 @@ export default function NotesBoard() {
       </main>
 
       {/* FAB */}
-      <button
-        onClick={() => setShowCreate(true)}
-        className="fixed bottom-8 right-8 w-16 h-16 rounded-xl shadow-2xl flex items-center justify-center z-[60] transition-transform duration-200 active:scale-90"
-        style={{ background: '#007257', color: '#ffffff' }}
-      >
-        <span className="material-symbols-outlined text-3xl">add</span>
-      </button>
+      {!selectedNote && (
+        <button
+          onClick={() => setShowCreate(true)}
+          className="fixed bottom-8 right-8 w-16 h-16 rounded-xl shadow-2xl flex items-center justify-center z-[60] transition-transform duration-200 active:scale-90"
+          style={{ background: '#007257', color: '#ffffff' }}
+        >
+          <span className="material-symbols-outlined text-3xl">add</span>
+        </button>
+      )}
+
+      {/* Note Detail Modal */}
+      {selectedNote && (
+        <div
+          className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto py-16 px-4"
+          style={{ background: 'rgba(56,56,53,0.35)', backdropFilter: 'blur(8px)' }}
+          onClick={(e) => e.target === e.currentTarget && setSelectedNoteId(null)}
+        >
+          <div className="w-full max-w-3xl">
+            <NoteDetailContent note={selectedNote} onClose={() => setSelectedNoteId(null)} />
+          </div>
+        </div>
+      )}
 
     </div>
   )
