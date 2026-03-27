@@ -18,7 +18,6 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import TopAppBar from '../components/TopAppBar'
-import BottomNavBar from '../components/BottomNavBar'
 import { COLOR_MAP, type Note, type Task } from '../data/notes'
 import { useNotes } from '../context/NotesContext'
 
@@ -373,7 +372,6 @@ export default function NotesBoard() {
         <span className="material-symbols-outlined text-3xl">add</span>
       </button>
 
-      <BottomNavBar />
     </div>
   )
 }

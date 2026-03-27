@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import TopAppBar from '../components/TopAppBar'
-import BottomNavBar from '../components/BottomNavBar'
 import { DETAIL_COLORS, type Note, type Task } from '../data/notes'
 import { useNotes } from '../context/NotesContext'
 
@@ -320,7 +319,6 @@ export default function NoteDetail() {
 
       </main>
 
-      <BottomNavBar />
     </div>
   )
 }
