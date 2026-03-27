@@ -279,7 +279,7 @@ export default function TopAppBar() {
 
   return (
     <header className="glass sticky top-0 z-50" style={{ borderBottom: '1px solid rgba(200,196,188,0.3)' }}>
-      <div className="grid grid-cols-3 items-center w-full px-6 py-3 max-w-screen-2xl mx-auto">
+      <div className="grid grid-cols-[1fr_auto] md:grid-cols-3 items-center w-full px-6 py-3 max-w-screen-2xl mx-auto">
         {/* Left: Logo + Nav */}
         <div className="flex items-center gap-8">
           <Link
@@ -320,7 +320,7 @@ export default function TopAppBar() {
         </div>
 
         {/* Right: Avatar */}
-        <div className="flex justify-end">
+        <div className="hidden md:flex justify-end">
           <div
             className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm select-none flex-shrink-0"
             style={{ background: '#89f0cb', color: '#00382a', fontFamily: 'Plus Jakarta Sans, sans-serif', border: '2px solid #89f0cb' }}
