@@ -4,7 +4,7 @@ import FocusPanel from '../components/FocusPanel'
 import {
   DndContext,
   DragOverlay,
-  PointerSensor,
+  MouseSensor,
   closestCenter,
   useSensor,
   useSensors,
@@ -260,7 +260,7 @@ export default function NotesBoard() {
   const [activeId, setActiveId] = useState<string | null>(null)
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } })
   )
 
   const activeNote = activeId ? notes.find((n) => n.id === activeId) : null
