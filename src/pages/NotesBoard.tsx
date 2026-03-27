@@ -259,7 +259,7 @@ function SortableNoteCard({ note, onClick }: { note: Note; onClick: () => void }
 
 /* ── Board ────────────────────────────────────────────────────────── */
 export default function NotesBoard() {
-  const { notes, addNote, reorderNotes } = useNotes()
+  const { notes, loading, addNote, reorderNotes } = useNotes()
   const { user } = useAuth()
   const firstName = user?.displayName?.split(' ')[0] ?? ''
   const [showCreate, setShowCreate] = useState(false)
@@ -319,12 +319,24 @@ export default function NotesBoard() {
 
           {/* Right: Notes grid */}
           <div className="w-full flex-1 min-w-0">
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div
+                key={i}
+                className="rounded-xl min-h-[130px] animate-pulse"
+                style={{ background: '#eae8e2' }}
+              />
+            ))}
+          </div>
+        ) : null}
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
+          <div style={{ display: loading ? 'none' : undefined }}>
           <SortableContext items={notes.map((n) => n.id)} strategy={rectSortingStrategy}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {notes.map((note) => (
@@ -368,6 +380,7 @@ export default function NotesBoard() {
               </div>
             )}
           </DragOverlay>
+          </div>{/* end loading wrapper */}
         </DndContext>
           </div>{/* end right column */}
         </div>{/* end two-col flex */}

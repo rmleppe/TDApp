@@ -29,6 +29,7 @@ export interface FocusTask {
 
 interface NotesContextValue {
   notes: Note[]
+  loading: boolean
   addNote: (note: Note) => void
   updateNote: (updated: Note) => void
   reorderNotes: (fromIndex: number, toIndex: number) => void
@@ -45,12 +46,16 @@ const NotesContext = createContext<NotesContextValue | null>(null)
 export function NotesProvider({ uid, children }: { uid: string; children: ReactNode }) {
   const [notes, setNotes] = useState<Note[]>([])
   const [focusTasks, setFocusTasks] = useState<FocusTask[]>([])
+  const [notesReady, setNotesReady] = useState(false)
+  const [tasksReady, setTasksReady] = useState(false)
+  const loading = !notesReady || !tasksReady
 
   // Real-time listener — notes ordered by `order` field
   useEffect(() => {
     const q = query(collection(db, 'users', uid, 'notes'), orderBy('order'))
     return onSnapshot(q, (snap) => {
       setNotes(snap.docs.map((d) => d.data() as Note))
+      setNotesReady(true)
     })
   }, [uid])
 
@@ -59,6 +64,7 @@ export function NotesProvider({ uid, children }: { uid: string; children: ReactN
     const q = query(collection(db, 'users', uid, 'focusTasks'), orderBy('order'))
     return onSnapshot(q, (snap) => {
       setFocusTasks(snap.docs.map((d) => d.data() as FocusTask))
+      setTasksReady(true)
     })
   }, [uid])
 
@@ -120,7 +126,7 @@ export function NotesProvider({ uid, children }: { uid: string; children: ReactN
 
   return (
     <NotesContext.Provider value={{
-      notes, addNote, updateNote, reorderNotes,
+      notes, loading, addNote, updateNote, reorderNotes,
       focusTasks, addFocusTask, toggleFocusTask, editFocusTask, reorderFocusTasks, deleteFocusTask,
     }}>
       {children}
