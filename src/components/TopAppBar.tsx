@@ -26,7 +26,7 @@ const SOLID_BG: Record<TimerMode, string> = {
 }
 
 function TimerPill({ onTogglePanel }: { onTogglePanel: () => void }) {
-  const { mode, running, seconds, total, play, pause, reset, focusMode } = useTimer()
+  const { mode, running, seconds, total, play, pause, reset, focusMode, toggleFocusMode } = useTimer()
   const c = COLORS[mode]
   const pct       = total > 0 ? seconds / total : 1
   const isWarning = pct < 0.15 && running
@@ -123,6 +123,24 @@ function TimerPill({ onTogglePanel }: { onTogglePanel: () => void }) {
           <span className="material-symbols-outlined text-[16px] md:text-[20px]">restart_alt</span>
         </button>
       </div>
+
+      {/* Divider */}
+      <div
+        className="w-px h-4 relative z-10 flex-shrink-0 transition-colors duration-300"
+        style={{ background: isWarning ? '#be2d06' : c.accent, opacity: 0.2 }}
+      />
+
+      {/* Focus toggle */}
+      <button
+        onClick={toggleFocusMode}
+        className="p-1 rounded-lg transition-all duration-150 active:scale-75 hover:scale-110 relative z-10 flex-shrink-0 cursor-pointer"
+        style={{ color: focusMode ? c.accent : isWarning ? '#be2d06' : c.accent, opacity: focusMode ? 1 : 0.5 }}
+        title={focusMode ? 'Salir de foco' : 'Modo foco'}
+      >
+        <span className="material-symbols-outlined text-[16px] md:text-[20px]">
+          {focusMode ? 'lens_blur' : 'center_focus_strong'}
+        </span>
+      </button>
     </div>
   )
 }
@@ -347,44 +365,15 @@ export default function TopAppBar() {
           </nav>
         </div>
 
-        {/* Center: Timer (+ Focus button on desktop) */}
-        <div className="flex justify-center items-center gap-3">
+        {/* Center: Timer */}
+        <div className="flex justify-center">
           <div className="relative" ref={pillContainerRef}>
             <TimerPill onTogglePanel={() => setPanelOpen((o) => !o)} />
           </div>
-          <button
-            onClick={toggleFocusMode}
-            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-sm transition-all cursor-pointer"
-            style={{
-              fontFamily: 'Plus Jakarta Sans, sans-serif',
-              background: focusMode ? '#007257' : 'transparent',
-              color: focusMode ? '#ffffff' : '#635f5a',
-              border: focusMode ? '2px solid #007257' : '2px solid #c8c4bc',
-            }}
-          >
-            <span className="material-symbols-outlined text-[16px]">
-              {focusMode ? 'lens_blur' : 'center_focus_strong'}
-            </span>
-            FOCUS
-          </button>
         </div>
 
-        {/* Right: Focus icon (mobile only) + Avatar + dropdown */}
+        {/* Right: Avatar + dropdown */}
         <div className="flex justify-end items-center gap-2" ref={avatarRef}>
-          {/* Focus button — mobile only, always visible so user can toggle in/out of focus mode */}
-          <button
-            onClick={toggleFocusMode}
-            className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg transition-all cursor-pointer"
-            style={{
-              background: focusMode ? '#007257' : 'transparent',
-              color: focusMode ? '#ffffff' : '#635f5a',
-              border: focusMode ? '2px solid #007257' : '2px solid #c8c4bc',
-            }}
-          >
-            <span className="material-symbols-outlined text-[18px]">
-              {focusMode ? 'lens_blur' : 'center_focus_strong'}
-            </span>
-          </button>
           <div className={`relative ${focusMode ? 'invisible' : ''}`}>
             <button
               onClick={() => setAvatarOpen((o) => !o)}
