@@ -308,7 +308,7 @@ export default function TopAppBar() {
   const [avatarOpen, setAvatarOpen] = useState(false)
   const location = useLocation()
   const { user, logout } = useAuth()
-  const { focusMode, toggleFocusMode } = useTimer()
+  const { focusMode } = useTimer()
   const avatarRef = useRef<HTMLDivElement>(null)
   const pillContainerRef = useRef<HTMLDivElement>(null)
 
