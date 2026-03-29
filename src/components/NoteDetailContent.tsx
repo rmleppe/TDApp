@@ -38,11 +38,6 @@ export default function NoteDetailContent({
   const patchNote = (patch: Partial<Note>) =>
     updateNote({ ...note, ...patch, editedAt: 'Ahora mismo' })
 
-  const saveBlocks = (newBlocks: NoteBlock[]) => {
-    setBlocks(newBlocks)
-    patchNote({ blocks: newBlocks })
-  }
-
   // Save latest blocks using functional update (safe for onBlur)
   const flushBlocks = () => {
     setBlocks((prev) => {
