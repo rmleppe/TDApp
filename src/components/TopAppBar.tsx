@@ -32,26 +32,12 @@ function TimerPill({ onTogglePanel }: { onTogglePanel: () => void }) {
   const isWarning = pct < 0.15 && running
   const isEmpty   = seconds === 0
 
-  const glowColor = isWarning ? '#be2d0640' : `${c.accent}30`
-  const glowHover = isWarning ? '#be2d0666' : `${c.accent}55`
-  const pillBg    = focusMode ? SOLID_BG[mode] : c.bg
+  const pillBg = focusMode ? SOLID_BG[mode] : c.bg
 
   return (
     <div
       className="relative flex items-center gap-1.5 md:gap-3 px-2.5 md:px-4 py-1.5 md:py-2 rounded-xl overflow-hidden select-none"
-      style={{
-        background: pillBg,
-        boxShadow: `0 0 0 0px ${glowColor}`,
-        transition: 'box-shadow 0.25s ease',
-      }}
-      onMouseEnter={(e) => {
-        ;(e.currentTarget as HTMLDivElement).style.boxShadow =
-          `0 0 18px 4px ${glowHover}`
-      }}
-      onMouseLeave={(e) => {
-        ;(e.currentTarget as HTMLDivElement).style.boxShadow =
-          `0 0 0 0px ${glowColor}`
-      }}
+      style={{ background: pillBg }}
     >
       {/* Background fill — drains left-to-right as time passes */}
       <div
