@@ -1,6 +1,25 @@
 import { useState, useRef, useEffect } from 'react'
-import { DETAIL_COLORS, type Note, type Task } from '../data/notes'
+import { DETAIL_COLORS, type Note, type NoteBlock } from '../data/notes'
 import { useNotes } from '../context/NotesContext'
+
+function initBlocks(note: Note): NoteBlock[] {
+  let result: NoteBlock[] = []
+  if (note.blocks && note.blocks.length > 0) {
+    result = note.blocks
+  } else {
+    // Migrate from legacy fields
+    if (note.content) result.push({ id: 'leg-top', kind: 'text', content: note.content })
+    for (const t of note.tasks ?? []) {
+      result.push({ id: t.id, kind: 'task', text: t.text, done: t.done })
+    }
+    if (note.contentBottom) result.push({ id: 'leg-bot', kind: 'text', content: note.contentBottom })
+  }
+  // Always ensure there's a trailing text block so you can write after tasks
+  if (result.length === 0 || result[result.length - 1].kind !== 'text') {
+    result = [...result, { id: `b${Date.now()}`, kind: 'text', content: '' }]
+  }
+  return result
+}
 
 export default function NoteDetailContent({
   note,
@@ -11,60 +30,87 @@ export default function NoteDetailContent({
 }) {
   const { updateNote, deleteNote, archiveNote } = useNotes()
   const [confirming, setConfirming] = useState<'delete' | 'archive' | null>(null)
-
-  const [newTask, setNewTask] = useState('')
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
-  const [editingText, setEditingText] = useState('')
-  const editInputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    if (editingTaskId && editInputRef.current) {
-      editInputRef.current.focus()
-      editInputRef.current.select()
-    }
-  }, [editingTaskId])
-
-  const tasks = note.tasks ?? []
-  const doneCount = tasks.filter((t) => t.done).length
+  const [blocks, setBlocks] = useState<NoteBlock[]>(() => initBlocks(note))
+  const [focusId, setFocusId] = useState<string | null>(null)
+  const elRefs = useRef<Map<string, HTMLElement>>(new Map())
   const dc = DETAIL_COLORS[note.color]
 
   const patchNote = (patch: Partial<Note>) =>
     updateNote({ ...note, ...patch, editedAt: 'Ahora mismo' })
 
-  const toggleTask = (taskId: string) => {
-    patchNote({
-      tasks: tasks.map((t) => (t.id === taskId ? { ...t, done: !t.done } : t)),
+  const saveBlocks = (newBlocks: NoteBlock[]) => {
+    setBlocks(newBlocks)
+    patchNote({ blocks: newBlocks })
+  }
+
+  // Save latest blocks using functional update (safe for onBlur)
+  const flushBlocks = () => {
+    setBlocks((prev) => {
+      patchNote({ blocks: prev })
+      return prev
     })
   }
+
+  const updateBlockLocal = (id: string, patch: Partial<NoteBlock>) =>
+    setBlocks((prev) => prev.map((b) => (b.id === id ? { ...b, ...patch } as NoteBlock : b)))
+
+  const toggleTask = (id: string) => {
+    setBlocks((prev) => {
+      const next = prev.map((b) => (b.id === id ? { ...b, done: !(b as Extract<NoteBlock, { kind: 'task' }>).done } as NoteBlock : b))
+      patchNote({ blocks: next })
+      return next
+    })
+  }
+
+  const deleteBlock = (id: string) => {
+    setBlocks((prev) => {
+      const next = prev.filter((b) => b.id !== id)
+      const result = next.length === 0 ? [{ id: `b${Date.now()}`, kind: 'text' as const, content: '' }] : next
+      patchNote({ blocks: result })
+      return result
+    })
+  }
+
+  const deleteBlockAndFocusPrev = (id: string) => {
+    const idx = blocks.findIndex((b) => b.id === id)
+    const prevId = idx > 0 ? blocks[idx - 1].id : null
+    deleteBlock(id)
+    if (prevId) setFocusId(prevId)
+  }
+
+  // Auto-focus blocks and position cursor at end
+  useEffect(() => {
+    if (!focusId) return
+    const el = elRefs.current.get(focusId)
+    if (el) {
+      el.focus()
+      if (el instanceof HTMLTextAreaElement || el instanceof HTMLInputElement) {
+        el.setSelectionRange(el.value.length, el.value.length)
+      }
+      setFocusId(null)
+    }
+  }, [focusId, blocks])
 
   const addTask = () => {
-    const text = newTask.trim()
-    if (!text) return
-    patchNote({
-      tasks: [...tasks, { id: `t${Date.now()}`, text, done: false }],
+    const taskId = `t${Date.now()}`
+    const textId = `b${Date.now() + 1}`
+    setBlocks((prev) => {
+      const last = prev[prev.length - 1]
+      const taskBlock = { id: taskId, kind: 'task' as const, text: '', done: false }
+      const trailingText = { id: textId, kind: 'text' as const, content: '' }
+      // If last block is an empty text block, replace it with task + new empty text
+      // Otherwise append at the end
+      const next = last?.kind === 'text' && last.content === ''
+        ? [...prev.slice(0, -1), taskBlock, trailingText]
+        : [...prev, taskBlock, trailingText]
+      patchNote({ blocks: next })
+      return next
     })
-    setNewTask('')
+    setFocusId(taskId)
   }
 
-  const startEdit = (task: Task) => {
-    setEditingTaskId(task.id)
-    setEditingText(task.text)
-  }
-
-  const commitEdit = () => {
-    if (!editingTaskId) return
-    const text = editingText.trim()
-    if (text) {
-      patchNote({
-        tasks: tasks.map((t) => (t.id === editingTaskId ? { ...t, text } : t)),
-      })
-    }
-    setEditingTaskId(null)
-  }
-
-  const deleteTask = (taskId: string) => {
-    patchNote({ tasks: tasks.filter((t) => t.id !== taskId) })
-  }
+  const taskBlocks = blocks.filter((b) => b.kind === 'task') as Extract<NoteBlock, { kind: 'task' }>[]
+  const doneCount = taskBlocks.filter((b) => b.done).length
 
   return (
     <article
@@ -76,7 +122,7 @@ export default function NoteDetailContent({
       {/* Close button */}
       <button
         onClick={onClose}
-        className="absolute top-6 right-8 p-1.5 rounded-lg transition-colors cursor-pointer"
+        className="absolute top-3 right-4 p-1.5 rounded-lg transition-colors cursor-pointer"
         style={{ color: dc.accent }}
         onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,0,0,0.07)')}
         onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'transparent')}
@@ -86,7 +132,7 @@ export default function NoteDetailContent({
       </button>
 
       {/* Note Header */}
-      <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <input
             type="text"
@@ -112,9 +158,9 @@ export default function NoteDetailContent({
             onFocus={(e) => (e.target.style.borderBottomColor = dc.accent)}
             onBlurCapture={(e) => (e.target.style.borderBottomColor = 'transparent')}
           />
-          {tasks.length > 0 && (
+          {taskBlocks.length > 0 && (
             <p className="mt-2 text-sm font-medium" style={{ color: dc.accent }}>
-              {doneCount} de {tasks.length} tareas completadas
+              {doneCount} de {taskBlocks.length} tareas completadas
             </p>
           )}
         </div>
@@ -136,21 +182,47 @@ export default function NoteDetailContent({
         )}
       </header>
 
-      {/* Tasks Section */}
-      {note.type === 'tasks' && (
-        <section className="space-y-4">
-          {tasks.map((task) => (
-            <div key={task.id} className="flex items-center gap-4 group">
-              {/* Checkbox */}
+      {/* Unified block editor */}
+      <div className="mb-4">
+        {blocks.map((block) => {
+          if (block.kind === 'text') {
+            return (
+              <textarea
+                key={block.id}
+                ref={(el) => { if (el) elRefs.current.set(block.id, el); else elRefs.current.delete(block.id) }}
+                value={block.content}
+                onChange={(e) => updateBlockLocal(block.id, { content: e.target.value })}
+                onBlur={flushBlocks}
+                onKeyDown={(e) => {
+                  const el = e.target as HTMLTextAreaElement
+                  if (e.key === 'Backspace' && block.content === '' && el.selectionStart === 0) {
+                    e.preventDefault()
+                    deleteBlockAndFocusPrev(block.id)
+                  }
+                }}
+                rows={Math.max(1, (block.content.match(/\n/g) ?? []).length + 1)}
+                className="w-full bg-transparent outline-none text-xl leading-relaxed font-medium resize-none block"
+                style={{
+                  color: dc.title,
+                  fontFamily: 'Be Vietnam Pro, sans-serif',
+                  marginBottom: '4px',
+                }}
+              />
+            )
+          }
+
+          // task block
+          return (
+            <div key={block.id} className="flex items-center gap-3 group py-0.5">
               <div
                 className="h-6 w-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 cursor-pointer transition-all duration-200"
                 style={{
-                  borderColor: task.done ? dc.checkDone : dc.checkBorder,
-                  background: task.done ? dc.checkDone : 'transparent',
+                  borderColor: block.done ? dc.checkDone : dc.checkBorder,
+                  background: block.done ? dc.checkDone : 'transparent',
                 }}
-                onClick={() => toggleTask(task.id)}
+                onClick={() => toggleTask(block.id)}
               >
-                {task.done && (
+                {block.done && (
                   <span
                     className="material-symbols-outlined text-white"
                     style={{ fontSize: '16px', fontVariationSettings: "'FILL' 1" }}
@@ -159,159 +231,114 @@ export default function NoteDetailContent({
                   </span>
                 )}
               </div>
-
-              {/* Task text */}
-              {editingTaskId === task.id ? (
-                <input
-                  ref={editInputRef}
-                  type="text"
-                  value={editingText}
-                  onChange={(e) => setEditingText(e.target.value)}
-                  onBlur={commitEdit}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') commitEdit()
-                    if (e.key === 'Escape') setEditingTaskId(null)
-                  }}
-                  className="flex-1 bg-transparent outline-none text-xl font-medium py-0.5 px-1 rounded"
-                  style={{
-                    color: dc.title,
-                    borderBottom: `2px solid ${dc.accent}`,
-                    fontFamily: 'Be Vietnam Pro, sans-serif',
-                  }}
-                />
-              ) : (
-                <span
-                  className="flex-1 text-xl font-medium transition-colors duration-200 cursor-text"
-                  style={{
-                    color: task.done ? dc.primary : dc.title,
-                    textDecoration: task.done ? 'line-through' : 'none',
-                  }}
-                  onDoubleClick={() => !task.done && startEdit(task)}
-                >
-                  {task.text}
-                </span>
-              )}
-
-              {/* Delete */}
+              <input
+                ref={(el) => { if (el) elRefs.current.set(block.id, el); else elRefs.current.delete(block.id) }}
+                type="text"
+                value={block.text}
+                onChange={(e) => updateBlockLocal(block.id, { text: e.target.value })}
+                onBlur={flushBlocks}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+                  if (e.key === 'Backspace' && block.text === '') {
+                    e.preventDefault()
+                    deleteBlockAndFocusPrev(block.id)
+                  }
+                }}
+                className="flex-1 bg-transparent outline-none text-xl font-medium"
+                style={{
+                  color: dc.title,
+                  textDecoration: block.done ? 'line-through' : 'none',
+                  opacity: block.done ? 0.6 : 1,
+                  fontFamily: 'Be Vietnam Pro, sans-serif',
+                }}
+              />
               <button
-                onClick={() => deleteTask(task.id)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg"
+                onClick={() => deleteBlock(block.id)}
+                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg flex-shrink-0"
                 style={{ color: dc.primary }}
-                title="Eliminar tarea"
               >
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
-          ))}
+          )
+        })}
+      </div>
 
-          {/* Add new task */}
-          <div
-            className="mt-8 pt-6 flex items-center gap-4"
-            style={{ borderTop: `1px solid ${dc.border}` }}
-          >
-            <span className="material-symbols-outlined" style={{ color: dc.accent }}>add</span>
-            <input
-              type="text"
-              value={newTask}
-              onChange={(e) => setNewTask(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && addTask()}
-              placeholder="Añadir nueva tarea..."
-              className="bg-transparent w-full py-2 px-0 text-xl font-medium outline-none placeholder:opacity-40"
-              style={{
-                borderBottom: `2px solid ${dc.border}`,
-                color: dc.title,
-                fontFamily: 'Be Vietnam Pro, sans-serif',
-              }}
-              onFocus={(e) => ((e.target as HTMLInputElement).style.borderBottomColor = dc.accent)}
-              onBlur={(e) => {
-                addTask()
-                ;(e.target as HTMLInputElement).style.borderBottomColor = dc.border
-              }}
-            />
-          </div>
-        </section>
-      )}
-
-      {/* Text content */}
-      {note.type === 'text' && (
-        <textarea
-          value={note.content ?? ''}
-          onChange={(e) => patchNote({ content: e.target.value })}
-          placeholder="Escribe algo..."
-          rows={8}
-          className="w-full bg-transparent outline-none text-xl leading-relaxed font-medium resize-none placeholder:opacity-40"
-          style={{
-            color: dc.title,
-            fontFamily: 'Be Vietnam Pro, sans-serif',
-            borderBottom: `1px solid ${dc.border}`,
-          }}
-        />
-      )}
+      {/* Add item button */}
+      <div className="pb-6 mb-6" style={{ borderBottom: `1px solid ${dc.border}` }}>
+        <button
+          onClick={addTask}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold cursor-pointer transition-all"
+          style={{ color: dc.accent, background: 'rgba(0,0,0,0.06)' }}
+          onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,0,0,0.11)')}
+          onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,0,0,0.06)')}
+        >
+          <span className="material-symbols-outlined text-[18px]">add_task</span>
+          Agregar item
+        </button>
+      </div>
 
       {/* Footer */}
-      <footer
-        className="mt-16 flex flex-wrap items-center justify-between gap-6 pt-8"
-        style={{ borderTop: `1px solid ${dc.border}` }}
-      >
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2 font-bold" style={{ color: dc.accent }}>
-            <span className="material-symbols-outlined text-lg">calendar_today</span>
-            <span className="text-sm">Creado {note.createdAt}</span>
+      <footer className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        {confirming ? (
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold" style={{ color: dc.accent, fontFamily: 'Be Vietnam Pro, sans-serif' }}>
+              {confirming === 'delete' ? '¿Eliminar nota?' : '¿Archivar nota?'}
+            </span>
+            <button
+              onClick={() => {
+                if (confirming === 'delete') { deleteNote(note.id); onClose() }
+                else { archiveNote(note.id); onClose() }
+              }}
+              className="px-3 py-1.5 rounded-lg text-sm font-bold cursor-pointer"
+              style={{ background: confirming === 'delete' ? '#c0392b' : dc.accent, color: '#fff', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+            >
+              Confirmar
+            </button>
+            <button
+              onClick={() => setConfirming(null)}
+              className="px-3 py-1.5 rounded-lg text-sm font-semibold cursor-pointer"
+              style={{ background: 'rgba(0,0,0,0.08)', color: dc.accent, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+            >
+              Cancelar
+            </button>
           </div>
-          <div className="flex items-center gap-2 italic" style={{ color: dc.accent, opacity: 0.7 }}>
-            <span className="material-symbols-outlined text-lg">schedule</span>
-            <span className="text-sm">Editado {note.editedAt}</span>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          {confirming ? (
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold" style={{ color: dc.accent, fontFamily: 'Be Vietnam Pro, sans-serif' }}>
-                {confirming === 'delete' ? '¿Eliminar nota?' : '¿Archivar nota?'}
-              </span>
-              <button
-                onClick={() => {
-                  if (confirming === 'delete') { deleteNote(note.id); onClose() }
-                  else { archiveNote(note.id); onClose() }
-                }}
-                className="px-3 py-1.5 rounded-lg text-sm font-bold cursor-pointer"
-                style={{ background: confirming === 'delete' ? '#c0392b' : dc.accent, color: '#fff', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-              >
-                Confirmar
-              </button>
-              <button
-                onClick={() => setConfirming(null)}
-                className="px-3 py-1.5 rounded-lg text-sm font-semibold cursor-pointer"
-                style={{ background: 'rgba(0,0,0,0.08)', color: dc.accent, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-              >
-                Cancelar
-              </button>
-            </div>
-          ) : (
-            <>
+        ) : (
+          <div className="grid grid-cols-2 md:contents gap-x-6">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2 font-bold" style={{ color: dc.accent }}>
+                <span className="material-symbols-outlined text-lg">calendar_today</span>
+                <span className="text-sm">Creado {note.createdAt}</span>
+              </div>
               <button
                 onClick={() => setConfirming('archive')}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors font-semibold cursor-pointer"
+                className="flex items-center gap-2 px-0 py-2 rounded-lg transition-colors font-semibold cursor-pointer w-fit"
                 style={{ color: dc.accent }}
-                onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.3)')}
-                onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'transparent')}
+                onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = '0.7')}
+                onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = '1')}
               >
                 <span className="material-symbols-outlined">archive</span>
                 <span>Archivar</span>
               </button>
+            </div>
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2 italic" style={{ color: dc.accent, opacity: 0.7 }}>
+                <span className="material-symbols-outlined text-lg">schedule</span>
+                <span className="text-sm">Editado {note.editedAt}</span>
+              </div>
               <button
                 onClick={() => setConfirming('delete')}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors font-semibold cursor-pointer"
+                className="flex items-center gap-2 px-0 py-2 rounded-lg transition-colors font-semibold cursor-pointer w-fit"
                 style={{ color: '#c0392b' }}
-                onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(192,57,43,0.08)')}
-                onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'transparent')}
+                onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = '0.7')}
+                onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = '1')}
               >
                 <span className="material-symbols-outlined">delete</span>
                 <span>Eliminar</span>
               </button>
-            </>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
       </footer>
     </article>
   )

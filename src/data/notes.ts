@@ -4,13 +4,19 @@ export interface Task {
   done: boolean
 }
 
+export type NoteBlock =
+  | { id: string; kind: 'text'; content: string }
+  | { id: string; kind: 'task'; text: string; done: boolean }
+
 export interface Note {
   id: string
   title: string
   icon: string
   color: 'green' | 'amber' | 'blue' | 'gray' | 'rose' | 'lavender' | 'peach' | 'mint'
-  type: 'tasks' | 'text'
+  blocks: NoteBlock[]
+  // legacy fields for migration
   content?: string
+  contentBottom?: string
   tasks?: Task[]
   tags?: string[]
   createdAt: string

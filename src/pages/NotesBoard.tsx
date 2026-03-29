@@ -19,7 +19,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import TopAppBar from '../components/TopAppBar'
-import { COLOR_MAP, type Note, type Task } from '../data/notes'
+import { COLOR_MAP, type Note } from '../data/notes'
 import { useNotes } from '../context/NotesContext'
 
 /* ── Color picker options ─────────────────────────────────────────── */
@@ -51,7 +51,6 @@ function CreateNoteModal({
 }) {
   const [title, setTitle] = useState('')
   const [color, setColor] = useState<Note['color']>('amber')
-  const [type, setType]   = useState<Note['type']>('tasks')
   const [icon, setIcon]   = useState('check_circle')
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -62,9 +61,7 @@ function CreateNoteModal({
       title: title.trim(),
       icon,
       color,
-      type,
-      tasks:   type === 'tasks' ? ([] as Task[]) : undefined,
-      content: type === 'text'  ? ''             : undefined,
+      blocks: [{ id: `b${Date.now()}`, kind: 'text' as const, content: '' }],
       createdAt: new Date().toLocaleDateString('es-ES', { month: 'short', day: 'numeric', year: 'numeric' }),
       editedAt: 'Ahora mismo',
     }
@@ -151,30 +148,6 @@ function CreateNoteModal({
                   title={ic}
                 >
                   <span className="material-symbols-outlined text-[18px]">{ic}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Type */}
-          <div>
-            <label className="block text-sm font-semibold mb-3"
-              style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: '#635f5a' }}>
-              Tipo
-            </label>
-            <div className="flex gap-3">
-              {(['tasks', 'text'] as Note['type'][]).map((t) => (
-                <button key={t} type="button" onClick={() => setType(t)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm transition-colors cursor-pointer"
-                  style={{
-                    background: type === t ? '#89f0cb' : '#eeece4',
-                    color: type === t ? '#00382a' : '#635f5a',
-                    fontFamily: 'Plus Jakarta Sans, sans-serif',
-                  }}>
-                  <span className="material-symbols-outlined text-[18px]">
-                    {t === 'tasks' ? 'check_circle' : 'notes'}
-                  </span>
-                  {t === 'tasks' ? 'Lista de tareas' : 'Texto libre'}
                 </button>
               ))}
             </div>
@@ -308,7 +281,7 @@ export default function NotesBoard() {
             Buenos días, {firstName}
           </h1>
           <p className="mt-2 text-lg" style={{ color: '#635f5a' }}>
-            Tienes {notes.filter((n) => n.type === 'tasks').length} notas con tareas activas.
+            Tienes {notes.filter((n) => (n.blocks ?? []).some((b) => b.kind === 'task') || (n.tasks ?? []).length > 0).length} notas con tareas activas.
           </p>
         </header>
 
