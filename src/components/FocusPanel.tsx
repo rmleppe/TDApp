@@ -119,7 +119,7 @@ export default function FocusPanel() {
 
   const total = focusTasks.length
   const doneCount = focusTasks.filter((t) => t.done).length
-  const pending = total - doneCount
+
   const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0
 
   useEffect(() => {
