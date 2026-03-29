@@ -99,6 +99,7 @@ export function NotesProvider({ uid, children }: { uid: string; children: ReactN
     const reordered = [...notes]
     const [moved] = reordered.splice(fromIndex, 1)
     reordered.splice(toIndex, 0, moved)
+    setNotes(reordered)
     const batch = writeBatch(db)
     reordered.forEach((n, i) => {
       batch.update(doc(db, 'users', uid, 'notes', n.id), { order: i })

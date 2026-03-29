@@ -210,7 +210,7 @@ function NoteCardContent({ note, faded = false }: { note: Note; faded?: boolean 
   return (
     <div
       className={`relative ${c.bg} p-6 rounded-xl dog-ear flex flex-col gap-4 min-h-[130px] h-full`}
-      style={{ opacity: faded ? 0.35 : 1 }}
+      style={{ opacity: faded ? 0 : 1 }}
     >
       <div className="flex justify-between items-start">
         <h3 className={`font-bold ${c.title} text-xl`}
@@ -246,7 +246,7 @@ function SortableNoteCard({ note, onClick }: { note: Note; onClick: () => void }
   return (
     <div
       ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform), transition }}
+      style={{ transform: CSS.Transform.toString(transform), transition: transform ? transition : undefined }}
       {...attributes}
       {...listeners}
       onClick={onClick}
@@ -369,7 +369,7 @@ export default function NotesBoard() {
           </SortableContext>
 
           {/* Drag overlay — the "lifted" card */}
-          <DragOverlay dropAnimation={{ duration: 200, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
+          <DragOverlay dropAnimation={null}>
             {activeNote && (
               <div style={{
                 transform: 'rotate(2deg)',

@@ -1,23 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
-import {
-  DndContext,
-  closestCenter,
-  MouseSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from '@dnd-kit/core'
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-  useSortable,
-} from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
 import { useNotes, type FocusTask } from '../context/NotesContext'
 
-/* ── Sortable task row ───────────────────────────────────────────── */
-function SortableTask({
+/* ── Task row ────────────────────────────────────────────────────── */
+function TaskRow({
   task,
   editingId,
   editingText,
@@ -40,16 +25,10 @@ function SortableTask({
   onCancelEdit: () => void
   onDelete: () => void
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id })
-
   return (
     <div
-      ref={setNodeRef}
       className="group flex items-center gap-3 p-4 rounded-xl transition-all duration-150"
       style={{
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0.4 : 1,
         background: '#ffffff',
         border: '1px solid #e8e5dd',
       }}
@@ -60,17 +39,6 @@ function SortableTask({
         ((e.currentTarget as HTMLDivElement).style.borderColor = '#e8e5dd')
       }
     >
-      {/* Drag handle */}
-      <button
-        {...attributes}
-        {...listeners}
-        className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 cursor-grab active:cursor-grabbing touch-none"
-        style={{ color: '#c8c4bc' }}
-        tabIndex={-1}
-      >
-        <span className="material-symbols-outlined text-[16px]">drag_indicator</span>
-      </button>
-
       {/* Checkbox */}
       <button
         onClick={onToggle}
@@ -149,7 +117,7 @@ function SortableTask({
 export default function FocusPanel() {
   const {
     focusTasks, addFocusTask, toggleFocusTask, editFocusTask,
-    reorderFocusTasks, deleteFocusTask,
+    deleteFocusTask,
   } = useNotes()
   const [input, setInput] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -161,11 +129,6 @@ export default function FocusPanel() {
   const doneCount = focusTasks.filter((t) => t.done).length
   const pending = total - doneCount
   const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0
-
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
-  )
 
   useEffect(() => {
     if (editingId && editRef.current) {
@@ -187,13 +150,6 @@ export default function FocusPanel() {
     const text = editingText.trim()
     if (text) editFocusTask(editingId, text)
     setEditingId(null)
-  }
-
-  const handleDragEnd = ({ active, over }: DragEndEvent) => {
-    if (!over || active.id === over.id) return
-    const from = focusTasks.findIndex((t) => t.id === active.id)
-    const to   = focusTasks.findIndex((t) => t.id === over.id)
-    reorderFocusTasks(from, to)
   }
 
   return (
@@ -255,27 +211,23 @@ export default function FocusPanel() {
       )}
 
       {/* Task list */}
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={focusTasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
-          <div className="flex flex-col gap-2">
-            {focusTasks.map((task) => (
-              <SortableTask
-                key={task.id}
-                task={task}
-                editingId={editingId}
-                editingText={editingText}
-                editRef={editRef as React.RefObject<HTMLInputElement>}
-                onToggle={() => toggleFocusTask(task.id)}
-                onStartEdit={() => { setEditingId(task.id); setEditingText(task.text) }}
-                onCommitEdit={commitEdit}
-                onEditingTextChange={setEditingText}
-                onCancelEdit={() => setEditingId(null)}
-                onDelete={() => deleteFocusTask(task.id)}
-              />
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
+      <div className="flex flex-col gap-2">
+        {focusTasks.map((task) => (
+          <TaskRow
+            key={task.id}
+            task={task}
+            editingId={editingId}
+            editingText={editingText}
+            editRef={editRef as React.RefObject<HTMLInputElement>}
+            onToggle={() => toggleFocusTask(task.id)}
+            onStartEdit={() => { setEditingId(task.id); setEditingText(task.text) }}
+            onCommitEdit={commitEdit}
+            onEditingTextChange={setEditingText}
+            onCancelEdit={() => setEditingId(null)}
+            onDelete={() => deleteFocusTask(task.id)}
+          />
+        ))}
+      </div>
 
       {/* Add input */}
       <div

@@ -286,9 +286,8 @@ export default function TopAppBar() {
   }, [avatarOpen])
 
   const navLinks = [
-    { label: 'Focus',    path: '/board'    },
-    { label: 'Archive',  path: '/archive'  },
-    { label: 'Settings', path: '/settings' },
+    { label: 'Focus',   path: '/board'   },
+    { label: 'Archive', path: '/archive' },
   ]
 
   return (
