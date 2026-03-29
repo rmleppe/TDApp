@@ -233,10 +233,32 @@ export default function NoteDetailContent({
                 onChange={(e) => updateBlockLocal(block.id, { text: e.target.value })}
                 onBlur={flushBlocks}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    const newId = `t${Date.now()}`
+                    const idx = blocks.findIndex((b) => b.id === block.id)
+                    setBlocks((prev) => {
+                      const next = [
+                        ...prev.slice(0, idx + 1),
+                        { id: newId, kind: 'task' as const, text: '', done: false },
+                        ...prev.slice(idx + 1),
+                      ]
+                      patchNote({ blocks: next })
+                      return next
+                    })
+                    setFocusId(newId)
+                  }
                   if (e.key === 'Backspace' && block.text === '') {
                     e.preventDefault()
-                    deleteBlockAndFocusPrev(block.id)
+                    const textId = block.id
+                    setBlocks((prev) => {
+                      const next = prev.map((b) =>
+                        b.id === textId ? { id: textId, kind: 'text' as const, content: '' } : b
+                      )
+                      patchNote({ blocks: next })
+                      return next
+                    })
+                    setFocusId(textId)
                   }
                 }}
                 className="flex-1 bg-transparent outline-none text-xl font-medium"
