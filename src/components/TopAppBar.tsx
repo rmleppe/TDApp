@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'react-router-dom'
 import {
   useTimer,
@@ -19,8 +20,13 @@ const COLORS: Record<TimerMode, { accent: string; bg: string; pill: string; text
 }
 
 /* ── Timer pill (always visible in header) ────────────────────────── */
+const SOLID_BG: Record<TimerMode, string> = {
+  work:  '#edfaf4',
+  break: '#f4f4fd',
+}
+
 function TimerPill({ onTogglePanel }: { onTogglePanel: () => void }) {
-  const { mode, running, seconds, total, play, pause, reset } = useTimer()
+  const { mode, running, seconds, total, play, pause, reset, focusMode } = useTimer()
   const c = COLORS[mode]
   const pct       = total > 0 ? seconds / total : 1
   const isWarning = pct < 0.15 && running
@@ -28,12 +34,13 @@ function TimerPill({ onTogglePanel }: { onTogglePanel: () => void }) {
 
   const glowColor = isWarning ? '#be2d0640' : `${c.accent}30`
   const glowHover = isWarning ? '#be2d0666' : `${c.accent}55`
+  const pillBg    = focusMode ? SOLID_BG[mode] : c.bg
 
   return (
     <div
       className="relative flex items-center gap-1.5 md:gap-3 px-2.5 md:px-4 py-1.5 md:py-2 rounded-xl overflow-hidden select-none"
       style={{
-        background: c.bg,
+        background: pillBg,
         boxShadow: `0 0 0 0px ${glowColor}`,
         transition: 'box-shadow 0.25s ease',
       }}
@@ -150,7 +157,7 @@ function PresetChip({
 }
 
 /* ── Dropdown panel ──────────────────────────────────────────────── */
-function TimerPanel({ onClose }: { onClose: () => void }) {
+function TimerPanel({ onClose, anchor }: { onClose: () => void; anchor: DOMRect }) {
   const {
     mode, seconds, total, running,
     workPreset, breakPreset,
@@ -173,12 +180,22 @@ function TimerPanel({ onClose }: { onClose: () => void }) {
   }, [onClose])
 
   const barW = `${Math.round(pct * 100)}%`
+  const centerX = anchor.left + anchor.width / 2
+  const top = anchor.bottom + 8
 
   return (
     <div
       ref={panelRef}
-      className="absolute left-1/2 -translate-x-1/2 top-full mt-2 z-[200] rounded-2xl p-5 w-72 shadow-2xl"
-      style={{ background: '#fefcf4', border: '1px solid #e8e5dd' }}
+      className="rounded-2xl p-5 w-72 shadow-2xl"
+      style={{
+        position: 'fixed',
+        top,
+        left: centerX,
+        transform: 'translateX(-50%)',
+        zIndex: 9999,
+        background: '#fefcf4',
+        border: '1px solid #e8e5dd',
+      }}
     >
       {/* Mode tabs */}
       <div className="flex gap-2 mb-5">
@@ -273,7 +290,9 @@ export default function TopAppBar() {
   const [avatarOpen, setAvatarOpen] = useState(false)
   const location = useLocation()
   const { user, logout } = useAuth()
+  const { focusMode, toggleFocusMode } = useTimer()
   const avatarRef = useRef<HTMLDivElement>(null)
+  const pillContainerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -286,15 +305,19 @@ export default function TopAppBar() {
   }, [avatarOpen])
 
   const navLinks = [
-    { label: 'Focus',   path: '/board'   },
+    { label: 'Board',   path: '/board'   },
     { label: 'Archive', path: '/archive' },
   ]
 
   return (
-    <header className="glass sticky top-0 z-50" style={{ borderBottom: '1px solid rgba(200,196,188,0.3)' }}>
+    <>
+    <header
+      className={`sticky top-0 ${focusMode ? 'z-[60]' : 'z-50 glass'}`}
+      style={{ borderBottom: focusMode ? 'none' : '1px solid rgba(200,196,188,0.3)' }}
+    >
       <div className="grid grid-cols-3 items-center w-full px-6 py-3 max-w-screen-2xl mx-auto">
         {/* Left: Logo + Nav */}
-        <div className="flex items-center gap-8">
+        <div className={`flex items-center gap-8 ${focusMode ? 'invisible' : ''}`}>
           <Link
             to="/board"
             className="text-lg md:text-2xl font-black tracking-tighter"
@@ -324,17 +347,45 @@ export default function TopAppBar() {
           </nav>
         </div>
 
-        {/* Center: Timer */}
-        <div className="flex justify-center">
-          <div className="relative">
+        {/* Center: Timer (+ Focus button on desktop) */}
+        <div className="flex justify-center items-center gap-3">
+          <div className="relative" ref={pillContainerRef}>
             <TimerPill onTogglePanel={() => setPanelOpen((o) => !o)} />
-            {panelOpen && <TimerPanel onClose={() => setPanelOpen(false)} />}
           </div>
+          <button
+            onClick={toggleFocusMode}
+            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-sm transition-all cursor-pointer"
+            style={{
+              fontFamily: 'Plus Jakarta Sans, sans-serif',
+              background: focusMode ? '#007257' : 'transparent',
+              color: focusMode ? '#ffffff' : '#635f5a',
+              border: focusMode ? '2px solid #007257' : '2px solid #c8c4bc',
+            }}
+          >
+            <span className="material-symbols-outlined text-[16px]">
+              {focusMode ? 'lens_blur' : 'center_focus_strong'}
+            </span>
+            FOCUS
+          </button>
         </div>
 
-        {/* Right: Avatar + dropdown */}
-        <div className="flex justify-end" ref={avatarRef}>
-          <div className="relative">
+        {/* Right: Focus icon (mobile only) + Avatar + dropdown */}
+        <div className="flex justify-end items-center gap-2" ref={avatarRef}>
+          {/* Focus button — mobile only, always visible so user can toggle in/out of focus mode */}
+          <button
+            onClick={toggleFocusMode}
+            className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg transition-all cursor-pointer"
+            style={{
+              background: focusMode ? '#007257' : 'transparent',
+              color: focusMode ? '#ffffff' : '#635f5a',
+              border: focusMode ? '2px solid #007257' : '2px solid #c8c4bc',
+            }}
+          >
+            <span className="material-symbols-outlined text-[18px]">
+              {focusMode ? 'lens_blur' : 'center_focus_strong'}
+            </span>
+          </button>
+          <div className={`relative ${focusMode ? 'invisible' : ''}`}>
             <button
               onClick={() => setAvatarOpen((o) => !o)}
               className="w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold text-sm select-none flex-shrink-0 cursor-pointer overflow-hidden transition-opacity hover:opacity-80"
@@ -377,5 +428,14 @@ export default function TopAppBar() {
         </div>
       </div>
     </header>
+
+    {panelOpen && pillContainerRef.current && createPortal(
+      <TimerPanel
+        onClose={() => setPanelOpen(false)}
+        anchor={pillContainerRef.current.getBoundingClientRect()}
+      />,
+      document.body
+    )}
+    </>
   )
 }

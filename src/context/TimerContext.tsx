@@ -31,6 +31,8 @@ interface TimerContextValue {
   pause: () => void
   reset: () => void
   switchMode: (mode: TimerMode) => void
+  focusMode: boolean
+  toggleFocusMode: () => void
 }
 
 const TimerContext = createContext<TimerContextValue | null>(null)
@@ -42,7 +44,10 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   const [seconds, setSeconds]         = useState(WORK_PRESETS[0].seconds)
   const [total, setTotal]             = useState(WORK_PRESETS[0].seconds)
   const [running, setRunning]         = useState(false)
+  const [focusMode, setFocusMode]     = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const toggleFocusMode = () => setFocusMode((f) => !f)
 
   useEffect(() => {
     if (running) {
@@ -105,6 +110,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
       workPreset, breakPreset,
       setWorkPreset, setBreakPreset,
       play, pause, reset, switchMode,
+      focusMode, toggleFocusMode,
     }}>
       {children}
     </TimerContext.Provider>

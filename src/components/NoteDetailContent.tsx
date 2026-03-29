@@ -57,19 +57,15 @@ export default function NoteDetailContent({
     })
   }
 
-  const deleteBlock = (id: string) => {
+  const deleteBlockAndFocusPrev = (id: string) => {
+    const idx = blocks.findIndex((b) => b.id === id)
+    const prevId = idx > 0 ? blocks[idx - 1].id : null
     setBlocks((prev) => {
       const next = prev.filter((b) => b.id !== id)
       const result = next.length === 0 ? [{ id: `b${Date.now()}`, kind: 'text' as const, content: '' }] : next
       patchNote({ blocks: result })
       return result
     })
-  }
-
-  const deleteBlockAndFocusPrev = (id: string) => {
-    const idx = blocks.findIndex((b) => b.id === id)
-    const prevId = idx > 0 ? blocks[idx - 1].id : null
-    deleteBlock(id)
     if (prevId) setFocusId(prevId)
   }
 
@@ -269,20 +265,13 @@ export default function NoteDetailContent({
                   fontFamily: 'Be Vietnam Pro, sans-serif',
                 }}
               />
-              <button
-                onClick={() => deleteBlock(block.id)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg flex-shrink-0"
-                style={{ color: dc.primary }}
-              >
-                <span className="material-symbols-outlined text-[18px]">close</span>
-              </button>
             </div>
           )
         })}
       </div>
 
       {/* Add item button */}
-      <div className="pb-6 mb-6" style={{ borderBottom: `1px solid ${dc.border}` }}>
+      <div className="pb-6 mb-6 flex justify-end" style={{ borderBottom: `1px solid ${dc.border}` }}>
         <button
           onClick={addTask}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold cursor-pointer transition-all"

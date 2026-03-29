@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { useTimer } from '../context/TimerContext'
 import FocusPanel from '../components/FocusPanel'
 import NoteDetailContent from '../components/NoteDetailContent'
 import {
@@ -235,6 +236,7 @@ export default function NotesBoard() {
   const { notes: allNotes, loading, addNote, reorderNotes } = useNotes()
   const notes = allNotes.filter((n) => !n.archived)
   const { user } = useAuth()
+  const { focusMode } = useTimer()
   const firstName = user?.displayName?.split(' ')[0] ?? ''
   const [showCreate, setShowCreate] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
@@ -272,22 +274,31 @@ export default function NotesBoard() {
       {showCreate && (
         <CreateNoteModal onClose={() => setShowCreate(false)} onCreate={handleCreate} />
       )}
+
+      {/* Focus mode overlay */}
+      {focusMode && (
+        <div
+          className="fixed inset-0 z-[55] transition-opacity duration-300"
+          style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(3px)' }}
+        />
+      )}
+
       <TopAppBar />
 
       <main className="max-w-screen-2xl mx-auto px-6 py-8 pb-32">
         <header className="mb-10">
           <h1 className="text-4xl font-extrabold tracking-tight"
             style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: '#383833' }}>
-            Buenos días, {firstName}
+            Buen día, {firstName}
           </h1>
-          <p className="mt-2 text-lg" style={{ color: '#635f5a' }}>
-            Tienes {notes.filter((n) => (n.blocks ?? []).some((b) => b.kind === 'task') || (n.tasks ?? []).length > 0).length} notas con tareas activas.
-          </p>
         </header>
 
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           {/* Left: Focus Panel */}
-          <div className="w-full lg:w-[560px] flex-shrink-0">
+          <div
+            className="w-full lg:w-[560px] flex-shrink-0"
+            style={{ position: 'relative', zIndex: focusMode ? 60 : undefined }}
+          >
             <FocusPanel />
           </div>
 

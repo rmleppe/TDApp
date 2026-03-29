@@ -91,14 +91,6 @@ function TaskRow({
             {task.text}
           </p>
         )}
-        {task.done && (
-          <span
-            className="text-[10px] font-bold uppercase tracking-wider"
-            style={{ color: '#007257', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-          >
-            Completado
-          </span>
-        )}
       </div>
 
       {/* Delete — on hover */}
@@ -172,30 +164,17 @@ export default function FocusPanel() {
           </span>
           Today's Focus
         </h2>
-        {pending > 0 && (
-          <span
-            className="text-xs font-bold px-3 py-1 rounded-full"
-            style={{
-              background: 'rgba(0,114,87,0.1)',
-              color: '#007257',
-              fontFamily: 'Plus Jakarta Sans, sans-serif',
-              letterSpacing: '0.05em',
-            }}
-          >
-            {pending} {pending === 1 ? 'TAREA' : 'TAREAS'}
-          </span>
-        )}
       </div>
 
       {/* Progress bar */}
       {total > 0 && (
         <div className="px-1">
-          <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center justify-between mb-1.5 gap-2">
             <span className="text-sm font-semibold" style={{ color: '#7f7b75', fontFamily: 'Be Vietnam Pro, sans-serif' }}>
-              {doneCount} Completada{doneCount !== 1 ? 's' : ''} · {pending} Pendiente{pending !== 1 ? 's' : ''}
+              {doneCount} Completada{doneCount !== 1 ? 's' : ''}
             </span>
             <span
-              className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+              className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
               style={{ background: 'rgba(0,114,87,0.1)', color: '#007257', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
             >
               {pct}% LISTO
