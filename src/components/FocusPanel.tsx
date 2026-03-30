@@ -27,7 +27,7 @@ function TaskRow({
 }) {
   return (
     <div
-      className="group flex items-center gap-3 p-2.5 md:p-3 rounded-xl transition-all duration-150"
+      className="group flex items-center gap-2 p-2 md:p-2.5 rounded-xl transition-all duration-150"
       style={{
         background: '#ffffff',
         border: '1px solid #e8e5dd',
@@ -42,7 +42,7 @@ function TaskRow({
       {/* Checkbox */}
       <button
         onClick={onToggle}
-        className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0 transition-all duration-150 border-2"
+        className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 transition-all duration-150 border-2"
         style={{
           background: task.done ? '#007257' : 'transparent',
           borderColor: task.done ? '#007257' : '#c8c4bc',
@@ -80,7 +80,7 @@ function TaskRow({
           />
         ) : (
           <p
-            className="font-medium text-base leading-snug cursor-text"
+            className="font-medium text-sm leading-snug cursor-text"
             style={{
               color: task.done ? '#7f7b75' : '#383833',
               textDecoration: task.done ? 'line-through' : 'none',
@@ -146,7 +146,7 @@ export default function FocusPanel() {
 
   return (
     <div
-      className="sticky top-24 rounded-2xl p-4 md:p-5 flex flex-col gap-3 md:gap-4"
+      className="sticky top-24 rounded-2xl p-3 md:p-4 flex flex-col gap-2 md:gap-3"
       style={{
         background: '#f2efe6',
         border: '1px solid #e8e5dd',
@@ -156,10 +156,10 @@ export default function FocusPanel() {
       {/* Header */}
       <div className="flex items-center justify-between mb-1">
         <h2
-          className="font-bold text-base md:text-xl flex items-center gap-2"
+          className="font-bold text-8xl md:text-xl flex items-center gap-2"
           style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: '#383833' }}
         >
-          <span className="material-symbols-outlined text-[26px]" style={{ color: '#007257' }}>
+          <span className="material-symbols-outlined text-[20px]" style={{ color: '#007257' }}>
             rocket
           </span>
           Today's Focus
@@ -170,7 +170,7 @@ export default function FocusPanel() {
       {total > 0 && (
         <div className="px-1">
           <div className="flex items-center justify-between mb-1.5 gap-2">
-            <span className="text-sm font-semibold" style={{ color: '#7f7b75', fontFamily: 'Be Vietnam Pro, sans-serif' }}>
+            <span className="text-xs font-semibold" style={{ color: '#7f7b75', fontFamily: 'Be Vietnam Pro, sans-serif' }}>
               {doneCount} Completada{doneCount !== 1 ? 's' : ''}
             </span>
             <span
@@ -223,7 +223,7 @@ export default function FocusPanel() {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
           placeholder="Añadir tarea de enfoque..."
-          className="flex-1 bg-transparent outline-none text-base font-medium placeholder:text-[#c8c4bc]"
+          className="flex-1 bg-transparent outline-none text-sm font-medium placeholder:text-[#c8c4bc]"
           style={{ color: '#383833', fontFamily: 'Be Vietnam Pro, sans-serif' }}
           onFocus={(e) => {
             const icon = e.currentTarget.previousElementSibling as HTMLElement
