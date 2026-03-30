@@ -139,7 +139,7 @@ export default function NoteDetailContent({
                 ;(e.target as HTMLInputElement).blur()
               }
             }}
-            className="text-xl md:text-4xl font-extrabold tracking-tight bg-transparent outline-none w-full"
+            className="text-3xl md:text-4xl font-extrabold tracking-tight bg-transparent outline-none w-full"
             style={{
               fontFamily: 'Plus Jakarta Sans, sans-serif',
               color: dc.title,

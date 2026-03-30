@@ -18,7 +18,7 @@ function ArchivedCard({ note, onUnarchive, onDelete }: {
       <div className="dog-ear-fold" />
 
       <div className="flex justify-between items-start">
-        <h3 className={`font-bold ${c.title} text-sm md:text-base`}
+        <h3 className={`font-bold ${c.title} text-base md:text-base`}
           style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
           {note.title}
         </h3>

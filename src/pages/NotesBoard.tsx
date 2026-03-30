@@ -187,7 +187,7 @@ function NoteCardContent({ note, faded = false }: { note: Note; faded?: boolean 
       style={{ opacity: faded ? 0 : 1 }}
     >
       <div className="flex justify-between items-start">
-        <h3 className={`font-bold ${c.title} text-sm md:text-base`}
+        <h3 className={`font-bold ${c.title} text-base md:text-base`}
           style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
           {note.title}
         </h3>
