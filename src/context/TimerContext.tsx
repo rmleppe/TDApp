@@ -38,15 +38,6 @@ function playFinishSound() {
   } catch (_) { /* AudioContext not available */ }
 }
 
-/* ── Notification ────────────────────────────────────────────────────── */
-function showFinishNotification(mode: TimerMode) {
-  if (!('Notification' in window) || Notification.permission !== 'granted') return
-  const isWork = mode === 'work'
-  new Notification(isWork ? '🍅 ¡Sesión completada!' : '☕ ¡Descanso terminado!', {
-    body: isWork ? 'Hora de tomar un descanso.' : '¡Hora de ponerse a trabajar!',
-    silent: true,
-  })
-}
 
 /* ── Context types ───────────────────────────────────────────────────── */
 interface TimerContextValue {
@@ -119,7 +110,6 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     const { mode: m, autoSwitch: auto, workPreset: wp, breakPreset: bp } = finishRef.current
 
     playFinishSound()
-    showFinishNotification(m)
 
     if (auto) {
       const nextMode: TimerMode = m === 'work' ? 'break' : 'work'
@@ -150,10 +140,6 @@ export function TimerProvider({ children }: { children: ReactNode }) {
       return
     }
     setRunning(true)
-    // Request notification permission lazily (must be triggered by user gesture)
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission()
-    }
   }
 
   const pause = () => setRunning(false)

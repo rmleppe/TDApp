@@ -53,7 +53,7 @@ function TimerPill({ onTogglePanel }: { onTogglePanel: () => void }) {
 
         {/* Mode icon */}
         <span
-          className="material-symbols-outlined text-[14px] md:text-[18px] relative z-10 flex-shrink-0 transition-transform duration-300"
+          className="material-symbols-outlined text-[14px] md:text-[18px] relative z-10 shrink-0 transition-transform duration-300"
           style={{ color: isWarning ? '#be2d06' : c.accent }}
         >
           {finished ? 'check_circle' : mode === 'work' ? 'timer' : 'coffee'}
@@ -62,7 +62,7 @@ function TimerPill({ onTogglePanel }: { onTogglePanel: () => void }) {
         {/* Time / finished label */}
         <button
           onClick={onTogglePanel}
-          className="relative z-10 flex-shrink-0 cursor-pointer"
+          className="relative z-10 shrink-0 cursor-pointer"
           title="Configurar timer"
         >
           <span
@@ -82,7 +82,7 @@ function TimerPill({ onTogglePanel }: { onTogglePanel: () => void }) {
 
         {/* Divider */}
         <div
-          className="w-px h-4 relative z-10 flex-shrink-0 transition-colors duration-300"
+          className="w-px h-4 relative z-10 shrink-0 transition-colors duration-300"
           style={{ background: isWarning ? '#be2d06' : c.accent, opacity: 0.2 }}
         />
 
@@ -110,14 +110,14 @@ function TimerPill({ onTogglePanel }: { onTogglePanel: () => void }) {
 
         {/* Divider */}
         <div
-          className="w-px h-4 relative z-10 flex-shrink-0 transition-colors duration-300"
+          className="w-px h-4 relative z-10 shrink-0 transition-colors duration-300"
           style={{ background: isWarning ? '#be2d06' : c.accent, opacity: 0.2 }}
         />
 
         {/* Focus toggle */}
         <button
           onClick={toggleFocusMode}
-          className="p-1 rounded-lg transition-all duration-150 active:scale-75 hover:scale-110 relative z-10 flex-shrink-0 cursor-pointer"
+          className="p-1 rounded-lg transition-all duration-150 active:scale-75 hover:scale-110 relative z-10 shrink-0 cursor-pointer"
           style={{ color: c.accent, opacity: focusMode ? 1 : 0.5 }}
           title={focusMode ? 'Salir de foco' : 'Modo foco'}
         >
@@ -300,7 +300,7 @@ function TimerPanel({ onClose, anchor }: { onClose: () => void; anchor: DOMRect 
         </div>
         <button
           onClick={toggleAutoSwitch}
-          className="relative flex-shrink-0 w-10 h-5 rounded-full transition-colors duration-200 cursor-pointer"
+          className="relative shrink-0 w-10 h-5 rounded-full transition-colors duration-200 cursor-pointer"
           style={{ background: autoSwitch ? c.accent : '#c8c4bc' }}
           title={autoSwitch ? 'Desactivar auto-cambio' : 'Activar auto-cambio'}
         >
@@ -342,7 +342,7 @@ export default function TopAppBar() {
   return (
     <>
     <header
-      className={`sticky top-0 ${focusMode ? 'z-[60]' : 'z-50 glass'}`}
+      className={`sticky top-0 ${focusMode ? 'z-60' : 'z-50 glass'}`}
       style={{ borderBottom: focusMode ? 'none' : '1px solid rgba(200,196,188,0.3)' }}
     >
       <div className="grid grid-cols-3 items-center w-full px-6 py-3 max-w-screen-2xl mx-auto">
@@ -389,7 +389,7 @@ export default function TopAppBar() {
           <div className={`relative ${focusMode ? 'invisible' : ''}`}>
             <button
               onClick={() => setAvatarOpen((o) => !o)}
-              className="w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold text-sm select-none flex-shrink-0 cursor-pointer overflow-hidden transition-opacity hover:opacity-80"
+              className="w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold text-sm select-none shrink-0 cursor-pointer overflow-hidden transition-opacity hover:opacity-80"
               style={{ background: '#89f0cb', color: '#00382a', fontFamily: 'Plus Jakarta Sans, sans-serif', border: '2px solid #89f0cb' }}
             >
               {user?.photoURL ? (
@@ -401,7 +401,7 @@ export default function TopAppBar() {
 
             {avatarOpen && (
               <div
-                className="absolute right-0 top-full mt-2 w-52 rounded-2xl p-3 z-[200] shadow-2xl"
+                className="absolute right-0 top-full mt-2 w-52 rounded-2xl p-3 z-200 shadow-2xl"
                 style={{ background: '#fefcf4', border: '1px solid #e8e5dd' }}
               >
                 <div className="px-2 py-1.5 mb-2">
