@@ -100,7 +100,6 @@ export default function NoteDetailContent({
     setFocusId(taskId)
   }
 
-  const taskBlocks = blocks.filter((b) => b.kind === 'task') as Extract<NoteBlock, { kind: 'task' }>[]
 
   return (
     <article
