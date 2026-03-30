@@ -145,7 +145,7 @@ function PresetChip({
   return (
     <button
       onClick={onClick}
-      className="px-3 py-1.5 rounded-lg text-sm font-semibold transition-all"
+      className="px-2 py-1 md:px-3 md:py-1.5 rounded-lg text-xs md:text-sm font-semibold transition-all"
       style={{
         background: active ? color.pill : 'rgba(0,0,0,0.05)',
         color: active ? color.text : '#635f5a',
@@ -190,7 +190,7 @@ function TimerPanel({ onClose, anchor }: { onClose: () => void; anchor: DOMRect 
   return (
     <div
       ref={panelRef}
-      className="rounded-2xl p-5 w-72 shadow-2xl"
+      className="rounded-2xl p-3 md:p-5 w-52 md:w-72 shadow-2xl"
       style={{
         position: 'fixed',
         top,
@@ -199,15 +199,16 @@ function TimerPanel({ onClose, anchor }: { onClose: () => void; anchor: DOMRect 
         zIndex: 9999,
         background: '#fefcf4',
         border: '1px solid #e8e5dd',
+        maxWidth: 'calc(100vw - 1.5rem)',
       }}
     >
       {/* Mode tabs */}
-      <div className="flex gap-2 mb-5">
+      <div className="flex gap-2 mb-3 md:mb-5">
         {(['work', 'break'] as TimerMode[]).map((m) => (
           <button
             key={m}
             onClick={() => switchMode(m)}
-            className="flex-1 py-2 rounded-xl font-bold text-sm transition-all"
+            className="flex-1 py-1.5 md:py-2 rounded-xl font-bold text-xs md:text-sm transition-all"
             style={{
               background: mode === m ? COLORS[m].pill : '#eeece4',
               color: mode === m ? COLORS[m].text : '#635f5a',
@@ -220,9 +221,9 @@ function TimerPanel({ onClose, anchor }: { onClose: () => void; anchor: DOMRect 
       </div>
 
       {/* Big time display */}
-      <div className="text-center mb-4">
+      <div className="text-center mb-3 md:mb-4">
         <p
-          className="text-5xl font-black tabular-nums tracking-tight"
+          className="text-3xl md:text-5xl font-black tabular-nums tracking-tight"
           style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: c.accent }}
         >
           {fmt(seconds)}
@@ -241,7 +242,7 @@ function TimerPanel({ onClose, anchor }: { onClose: () => void; anchor: DOMRect 
       </div>
 
       {/* Presets */}
-      <div className="mb-5">
+      <div className="mb-3 md:mb-5">
         <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: '#82807c', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
           {mode === 'work' ? 'Duración de sesión' : 'Duración de descanso'}
         </p>
@@ -267,7 +268,7 @@ function TimerPanel({ onClose, anchor }: { onClose: () => void; anchor: DOMRect 
       <div className="flex gap-2">
         <button
           onClick={running ? pause : play}
-          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold transition-all active:scale-95"
+          className="flex-1 flex items-center justify-center gap-2 py-2 md:py-2.5 rounded-xl font-bold transition-all active:scale-95"
           style={{ background: c.accent, color: '#fff', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
         >
           <span className="material-symbols-outlined text-[20px]">
@@ -277,7 +278,7 @@ function TimerPanel({ onClose, anchor }: { onClose: () => void; anchor: DOMRect 
         </button>
         <button
           onClick={reset}
-          className="px-3 py-2.5 rounded-xl transition-all active:scale-95"
+          className="px-3 py-2 md:py-2.5 rounded-xl transition-all active:scale-95"
           style={{ background: '#eeece4', color: '#635f5a' }}
           title="Reiniciar"
         >

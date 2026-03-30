@@ -101,7 +101,6 @@ export default function NoteDetailContent({
   }
 
   const taskBlocks = blocks.filter((b) => b.kind === 'task') as Extract<NoteBlock, { kind: 'task' }>[]
-  const doneCount = taskBlocks.filter((b) => b.done).length
 
   return (
     <article
@@ -149,11 +148,6 @@ export default function NoteDetailContent({
             onFocus={(e) => (e.target.style.borderBottomColor = dc.accent)}
             onBlurCapture={(e) => (e.target.style.borderBottomColor = 'transparent')}
           />
-          {taskBlocks.length > 0 && (
-            <p className="mt-2 text-sm font-medium" style={{ color: dc.accent }}>
-              {doneCount} de {taskBlocks.length} tareas completadas
-            </p>
-          )}
         </div>
         {note.tags && note.tags.length > 0 && (
           <div className="flex gap-2 flex-wrap">
