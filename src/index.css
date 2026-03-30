@@ -87,6 +87,10 @@ body {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.55; }
 }
+@keyframes timer-finish-glow {
+  0%, 100% { filter: drop-shadow(0 0 0px rgba(0, 114, 87, 0)); }
+  50%       { filter: drop-shadow(0 0 8px rgba(0, 114, 87, 0.55)); }
+}
 
 .timer-running {
   animation: timer-pulse 2s ease-in-out infinite;
@@ -96,6 +100,9 @@ body {
 }
 .timer-warning {
   animation: timer-warning-flash 1s ease-in-out infinite;
+}
+.timer-finished {
+  animation: timer-finish-glow 1s ease-in-out infinite;
 }
 
 .glass {

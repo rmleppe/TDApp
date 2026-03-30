@@ -26,107 +26,106 @@ const SOLID_BG: Record<TimerMode, string> = {
 }
 
 function TimerPill({ onTogglePanel }: { onTogglePanel: () => void }) {
-  const { mode, running, seconds, total, play, pause, reset, focusMode, toggleFocusMode } = useTimer()
+  const { mode, running, seconds, total, play, pause, reset, focusMode, toggleFocusMode, finished } = useTimer()
   const c = COLORS[mode]
   const pct       = total > 0 ? seconds / total : 1
-  const isWarning = pct < 0.15 && running
-  const isEmpty   = seconds === 0
+  const isWarning = pct < 0.15 && running && !finished
 
   const pillBg = focusMode ? SOLID_BG[mode] : c.bg
 
   return (
-    <div
-      className="relative flex items-center gap-1.5 md:gap-3 px-2.5 md:px-4 py-1.5 md:py-2 rounded-xl overflow-hidden select-none"
-      style={{ background: pillBg }}
-    >
-      {/* Background fill — drains left-to-right as time passes */}
+    <div className={finished ? 'timer-finished rounded-xl' : 'rounded-xl'}>
       <div
-        className="absolute inset-0 rounded-xl pointer-events-none"
-        style={{
-          background: isWarning ? '#f95630' : c.pill,
-          opacity: isWarning ? 0.25 : 0.4,
-          transform: `scaleX(${pct})`,
-          transformOrigin: 'left center',
-          transition: 'transform 0.9s linear, background 0.5s ease, opacity 0.5s ease',
-        }}
-      />
-
-      {/* Mode icon — spins once when switching mode */}
-      <span
-        className="material-symbols-outlined text-[14px] md:text-[18px] relative z-10 flex-shrink-0 transition-transform duration-300"
-        style={{
-          color: isWarning ? '#be2d06' : c.accent,
-          transform: running ? 'rotate(0deg)' : 'rotate(0deg)',
-        }}
+        className="relative flex items-center gap-1.5 md:gap-3 px-2.5 md:px-4 py-1.5 md:py-2 rounded-xl overflow-hidden select-none"
+        style={{ background: pillBg }}
       >
-        {isEmpty ? 'check_circle' : mode === 'work' ? 'timer' : 'coffee'}
-      </span>
-
-      {/* Time — key trick triggers tick-pop CSS animation each second */}
-      <button
-        onClick={onTogglePanel}
-        className="relative z-10 flex-shrink-0 cursor-pointer"
-        title="Configurar timer"
-      >
-        <span
-          className={[
-            'font-bold tabular-nums text-sm md:text-base inline-block',
-            isWarning ? 'timer-warning' : '',
-          ].join(' ')}
+        {/* Background fill — drains left-to-right as time passes */}
+        <div
+          className="absolute inset-0 rounded-xl pointer-events-none"
           style={{
-            fontFamily: 'Plus Jakarta Sans, sans-serif',
-            color: isWarning ? '#be2d06' : c.accent,
+            background: isWarning ? '#f95630' : c.pill,
+            opacity: isWarning ? 0.25 : finished ? 0.6 : 0.4,
+            transform: `scaleX(${finished ? 1 : pct})`,
+            transformOrigin: 'left center',
+            transition: 'transform 0.9s linear, background 0.5s ease, opacity 0.5s ease',
           }}
-        >
-          {fmt(seconds)}
-        </span>
-      </button>
+        />
 
-      {/* Divider */}
-      <div
-        className="w-px h-4 relative z-10 flex-shrink-0 transition-colors duration-300"
-        style={{ background: isWarning ? '#be2d06' : c.accent, opacity: 0.2 }}
-      />
-
-      {/* Controls */}
-      <div className="flex gap-0.5 relative z-10">
-        <button
-          onClick={running ? pause : play}
-          className="p-1 rounded-lg transition-all duration-150 active:scale-75 hover:scale-110 cursor-pointer"
+        {/* Mode icon */}
+        <span
+          className="material-symbols-outlined text-[14px] md:text-[18px] relative z-10 flex-shrink-0 transition-transform duration-300"
           style={{ color: isWarning ? '#be2d06' : c.accent }}
-          title={running ? 'Pausar' : 'Iniciar'}
         >
-          <span className="material-symbols-outlined text-[16px] md:text-[20px]">
-            {running ? 'pause' : 'play_arrow'}
+          {finished ? 'check_circle' : mode === 'work' ? 'timer' : 'coffee'}
+        </span>
+
+        {/* Time / finished label */}
+        <button
+          onClick={onTogglePanel}
+          className="relative z-10 flex-shrink-0 cursor-pointer"
+          title="Configurar timer"
+        >
+          <span
+            className={[
+              'font-bold text-sm md:text-base inline-block',
+              isWarning ? 'timer-warning tabular-nums' : '',
+              !isWarning && !finished ? 'tabular-nums' : '',
+            ].join(' ')}
+            style={{
+              fontFamily: 'Plus Jakarta Sans, sans-serif',
+              color: isWarning ? '#be2d06' : c.accent,
+            }}
+          >
+            {finished ? '¡Listo!' : fmt(seconds)}
           </span>
         </button>
+
+        {/* Divider */}
+        <div
+          className="w-px h-4 relative z-10 flex-shrink-0 transition-colors duration-300"
+          style={{ background: isWarning ? '#be2d06' : c.accent, opacity: 0.2 }}
+        />
+
+        {/* Controls */}
+        <div className="flex gap-0.5 relative z-10">
+          <button
+            onClick={running ? pause : play}
+            className="p-1 rounded-lg transition-all duration-150 active:scale-75 hover:scale-110 cursor-pointer"
+            style={{ color: isWarning ? '#be2d06' : c.accent }}
+            title={running ? 'Pausar' : finished ? 'Iniciar siguiente' : 'Iniciar'}
+          >
+            <span className="material-symbols-outlined text-[16px] md:text-[20px]">
+              {running ? 'pause' : 'play_arrow'}
+            </span>
+          </button>
+          <button
+            onClick={reset}
+            className="p-1 rounded-lg transition-all duration-150 active:scale-75 hover:scale-110 hover:rotate-[-30deg] cursor-pointer"
+            style={{ color: isWarning ? '#be2d06' : c.accent }}
+            title="Reiniciar"
+          >
+            <span className="material-symbols-outlined text-[16px] md:text-[20px]">restart_alt</span>
+          </button>
+        </div>
+
+        {/* Divider */}
+        <div
+          className="w-px h-4 relative z-10 flex-shrink-0 transition-colors duration-300"
+          style={{ background: isWarning ? '#be2d06' : c.accent, opacity: 0.2 }}
+        />
+
+        {/* Focus toggle */}
         <button
-          onClick={reset}
-          className="p-1 rounded-lg transition-all duration-150 active:scale-75 hover:scale-110 hover:rotate-[-30deg] cursor-pointer"
-          style={{ color: isWarning ? '#be2d06' : c.accent }}
-          title="Reiniciar"
+          onClick={toggleFocusMode}
+          className="p-1 rounded-lg transition-all duration-150 active:scale-75 hover:scale-110 relative z-10 flex-shrink-0 cursor-pointer"
+          style={{ color: c.accent, opacity: focusMode ? 1 : 0.5 }}
+          title={focusMode ? 'Salir de foco' : 'Modo foco'}
         >
-          <span className="material-symbols-outlined text-[16px] md:text-[20px]">restart_alt</span>
+          <span className="material-symbols-outlined text-[16px] md:text-[20px]">
+            {focusMode ? 'lens_blur' : 'center_focus_strong'}
+          </span>
         </button>
       </div>
-
-      {/* Divider */}
-      <div
-        className="w-px h-4 relative z-10 flex-shrink-0 transition-colors duration-300"
-        style={{ background: isWarning ? '#be2d06' : c.accent, opacity: 0.2 }}
-      />
-
-      {/* Focus toggle */}
-      <button
-        onClick={toggleFocusMode}
-        className="p-1 rounded-lg transition-all duration-150 active:scale-75 hover:scale-110 relative z-10 flex-shrink-0 cursor-pointer"
-        style={{ color: focusMode ? c.accent : isWarning ? '#be2d06' : c.accent, opacity: focusMode ? 1 : 0.5 }}
-        title={focusMode ? 'Salir de foco' : 'Modo foco'}
-      >
-        <span className="material-symbols-outlined text-[16px] md:text-[20px]">
-          {focusMode ? 'lens_blur' : 'center_focus_strong'}
-        </span>
-      </button>
     </div>
   )
 }
@@ -167,6 +166,7 @@ function TimerPanel({ onClose, anchor }: { onClose: () => void; anchor: DOMRect 
     workPreset, breakPreset,
     setWorkPreset, setBreakPreset,
     switchMode, play, pause, reset,
+    autoSwitch, toggleAutoSwitch,
   } = useTimer()
   const c = COLORS[mode]
   const pct = total > 0 ? seconds / total : 1
@@ -282,6 +282,32 @@ function TimerPanel({ onClose, anchor }: { onClose: () => void; anchor: DOMRect 
           title="Reiniciar"
         >
           <span className="material-symbols-outlined text-[20px]">restart_alt</span>
+        </button>
+      </div>
+
+      {/* Auto-switch toggle */}
+      <div
+        className="mt-3 pt-3 flex items-center gap-3"
+        style={{ borderTop: '1px solid #e8e5dd' }}
+      >
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-semibold" style={{ color: '#383833', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+            Auto-cambiar modo
+          </p>
+          <p className="text-[11px]" style={{ color: '#82807c', fontFamily: 'Be Vietnam Pro, sans-serif' }}>
+            {autoSwitch ? 'Cambia automáticamente en 3 s' : 'Requiere acción manual'}
+          </p>
+        </div>
+        <button
+          onClick={toggleAutoSwitch}
+          className="relative flex-shrink-0 w-10 h-5 rounded-full transition-colors duration-200 cursor-pointer"
+          style={{ background: autoSwitch ? c.accent : '#c8c4bc' }}
+          title={autoSwitch ? 'Desactivar auto-cambio' : 'Activar auto-cambio'}
+        >
+          <span
+            className="absolute top-0.5 left-0 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200"
+            style={{ transform: autoSwitch ? 'translateX(22px)' : 'translateX(2px)' }}
+          />
         </button>
       </div>
     </div>

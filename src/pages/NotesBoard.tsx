@@ -254,8 +254,8 @@ export default function NotesBoard() {
 
   const handleDragEnd = ({ active, over }: DragEndEvent) => {
     if (over && active.id !== over.id) {
-      const from = notes.findIndex((n) => n.id === active.id)
-      const to   = notes.findIndex((n) => n.id === over.id)
+      const from = allNotes.findIndex((n) => n.id === active.id)
+      const to   = allNotes.findIndex((n) => n.id === over.id)
       reorderNotes(from, to)
     }
     setActiveId(null)

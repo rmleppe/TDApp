@@ -8,6 +8,7 @@ export interface TimerPreset {
 }
 
 export const WORK_PRESETS: TimerPreset[] = [
+  { label: '30 s',   seconds: 30 },
   { label: '25 min', seconds: 25 * 60 },
   { label: '30 min', seconds: 30 * 60 },
   { label: '1 hora', seconds: 60 * 60 },
@@ -18,11 +19,44 @@ export const BREAK_PRESETS: TimerPreset[] = [
   { label: '15 min', seconds: 15 * 60 },
 ]
 
+/* ── Audio ──────────────────────────────────────────────────────────── */
+function playFinishSound() {
+  try {
+    const ctx = new AudioContext()
+    ;[0, 0.38, 0.76].forEach((offset) => {
+      const osc  = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(1046.5, ctx.currentTime + offset) // C6
+      gain.gain.setValueAtTime(0.32, ctx.currentTime + offset)
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + offset + 0.55)
+      osc.start(ctx.currentTime + offset)
+      osc.stop(ctx.currentTime + offset + 0.55)
+    })
+  } catch (_) { /* AudioContext not available */ }
+}
+
+/* ── Notification ────────────────────────────────────────────────────── */
+function showFinishNotification(mode: TimerMode) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return
+  const isWork = mode === 'work'
+  new Notification(isWork ? '🍅 ¡Sesión completada!' : '☕ ¡Descanso terminado!', {
+    body: isWork ? 'Hora de tomar un descanso.' : '¡Hora de ponerse a trabajar!',
+    silent: true,
+  })
+}
+
+/* ── Context types ───────────────────────────────────────────────────── */
 interface TimerContextValue {
   mode: TimerMode
   running: boolean
   seconds: number
   total: number
+  finished: boolean
+  autoSwitch: boolean
+  toggleAutoSwitch: () => void
   workPreset: TimerPreset
   breakPreset: TimerPreset
   setWorkPreset: (p: TimerPreset) => void
@@ -38,23 +72,33 @@ interface TimerContextValue {
 const TimerContext = createContext<TimerContextValue | null>(null)
 
 export function TimerProvider({ children }: { children: ReactNode }) {
-  const [mode, setMode]               = useState<TimerMode>('work')
+  const [mode, setMode]                    = useState<TimerMode>('work')
   const [workPreset, setWorkPresetState]   = useState<TimerPreset>(WORK_PRESETS[0])
   const [breakPreset, setBreakPresetState] = useState<TimerPreset>(BREAK_PRESETS[0])
-  const [seconds, setSeconds]         = useState(WORK_PRESETS[0].seconds)
-  const [total, setTotal]             = useState(WORK_PRESETS[0].seconds)
-  const [running, setRunning]         = useState(false)
-  const [focusMode, setFocusMode]     = useState(false)
+  const [seconds, setSeconds]              = useState(WORK_PRESETS[0].seconds)
+  const [total, setTotal]                  = useState(WORK_PRESETS[0].seconds)
+  const [running, setRunning]              = useState(false)
+  const [finished, setFinished]            = useState(false)
+  const [autoSwitch, setAutoSwitchState]   = useState(
+    () => localStorage.getItem('timer-autoswitch') !== 'false'
+  )
+  const [focusMode, setFocusMode]          = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Keeps latest values accessible in the finish effect without extra deps
+  const finishRef = useRef({ mode, autoSwitch, workPreset, breakPreset })
+  finishRef.current = { mode, autoSwitch, workPreset, breakPreset }
 
   const toggleFocusMode = () => setFocusMode((f) => !f)
 
+  /* ── Countdown interval ─────────────────────────────────────────── */
   useEffect(() => {
     if (running) {
       intervalRef.current = setInterval(() => {
         setSeconds((s) => {
           if (s <= 1) {
             setRunning(false)
+            setFinished(true)
             return 0
           }
           return s - 1
@@ -68,11 +112,55 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     }
   }, [running])
 
-  const play  = () => setRunning(true)
+  /* ── On finish: sound + notification + auto-switch ──────────────── */
+  useEffect(() => {
+    if (!finished) return
+
+    const { mode: m, autoSwitch: auto, workPreset: wp, breakPreset: bp } = finishRef.current
+
+    playFinishSound()
+    showFinishNotification(m)
+
+    if (auto) {
+      const nextMode: TimerMode = m === 'work' ? 'break' : 'work'
+      const t = nextMode === 'work' ? wp.seconds : bp.seconds
+      const id = setTimeout(() => {
+        setMode(nextMode)
+        setSeconds(t)
+        setTotal(t)
+        setFinished(false)
+        setRunning(true)
+      }, 3000)
+      return () => clearTimeout(id)
+    }
+  }, [finished]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* ── Actions ────────────────────────────────────────────────────── */
+  const play = () => {
+    if (finished) {
+      // Switch to next mode and start immediately
+      const { mode: m, workPreset: wp, breakPreset: bp } = finishRef.current
+      const nextMode: TimerMode = m === 'work' ? 'break' : 'work'
+      const t = nextMode === 'work' ? wp.seconds : bp.seconds
+      setMode(nextMode)
+      setSeconds(t)
+      setTotal(t)
+      setFinished(false)
+      setRunning(true)
+      return
+    }
+    setRunning(true)
+    // Request notification permission lazily (must be triggered by user gesture)
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission()
+    }
+  }
+
   const pause = () => setRunning(false)
 
   const reset = () => {
     setRunning(false)
+    setFinished(false)
     const t = mode === 'work' ? workPreset.seconds : breakPreset.seconds
     setSeconds(t)
     setTotal(t)
@@ -82,6 +170,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     setWorkPresetState(p)
     if (mode === 'work') {
       setRunning(false)
+      setFinished(false)
       setSeconds(p.seconds)
       setTotal(p.seconds)
     }
@@ -91,6 +180,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     setBreakPresetState(p)
     if (mode === 'break') {
       setRunning(false)
+      setFinished(false)
       setSeconds(p.seconds)
       setTotal(p.seconds)
     }
@@ -99,14 +189,24 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   const switchMode = (m: TimerMode) => {
     setMode(m)
     setRunning(false)
+    setFinished(false)
     const t = m === 'work' ? workPreset.seconds : breakPreset.seconds
     setSeconds(t)
     setTotal(t)
   }
 
+  const toggleAutoSwitch = () => {
+    setAutoSwitchState((v) => {
+      const next = !v
+      localStorage.setItem('timer-autoswitch', String(next))
+      return next
+    })
+  }
+
   return (
     <TimerContext.Provider value={{
-      mode, running, seconds, total,
+      mode, running, seconds, total, finished,
+      autoSwitch, toggleAutoSwitch,
       workPreset, breakPreset,
       setWorkPreset, setBreakPreset,
       play, pause, reset, switchMode,
