@@ -8,11 +8,11 @@ export default function LoginPage() {
       className="min-h-screen flex flex-col items-center justify-center px-4"
       style={{ background: '#fefcf4' }}
     >
-      <div className="w-full max-w-sm flex flex-col items-center gap-8">
+      <div className="w-full max-w-sm flex flex-col items-center gap-4 md:gap-6">
         {/* Logo */}
         <div className="text-center">
           <p
-            className="text-5xl font-black tracking-tighter"
+            className="text-2xl md:text-4xl font-black tracking-tighter"
             style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: '#007257' }}
           >
             TDApp
@@ -24,12 +24,12 @@ export default function LoginPage() {
 
         {/* Card */}
         <div
-          className="w-full rounded-2xl p-8 flex flex-col gap-6"
+          className="w-full rounded-2xl p-5 md:p-7 flex flex-col gap-5 md:gap-6"
           style={{ background: '#f5f2ea', border: '1px solid #e8e5dd' }}
         >
           <div className="text-center">
             <p
-              className="text-xl font-extrabold"
+              className="text-base md:text-lg font-extrabold"
               style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: '#383833' }}
             >
               Iniciar sesión

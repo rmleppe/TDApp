@@ -75,9 +75,9 @@ function CreateNoteModal({
       style={{ background: 'rgba(56,56,53,0.4)', backdropFilter: 'blur(4px)' }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="w-full max-w-md rounded-2xl p-8 shadow-2xl" style={{ background: '#fefcf4' }}>
+      <div className="w-full max-w-md rounded-2xl p-4 md:p-6 shadow-2xl" style={{ background: '#fefcf4' }}>
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-extrabold tracking-tight"
+          <h2 className="text-lg md:text-xl font-extrabold tracking-tight"
             style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: '#383833' }}>
             Nueva nota
           </h2>
@@ -183,11 +183,11 @@ function NoteCardContent({ note, faded = false }: { note: Note; faded?: boolean 
   const c = COLOR_MAP[note.color]
   return (
     <div
-      className={`relative ${c.bg} p-6 rounded-xl dog-ear flex flex-col gap-4 min-h-[130px] h-full`}
+      className={`relative ${c.bg} p-4 md:p-5 rounded-xl dog-ear flex flex-col gap-4 min-h-[90px] md:min-h-[120px] h-full`}
       style={{ opacity: faded ? 0 : 1 }}
     >
       <div className="flex justify-between items-start">
-        <h3 className={`font-bold ${c.title} text-xl`}
+        <h3 className={`font-bold ${c.title} text-sm md:text-base`}
           style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
           {note.title}
         </h3>
@@ -285,15 +285,15 @@ export default function NotesBoard() {
 
       <TopAppBar />
 
-      <main className="max-w-screen-2xl mx-auto px-6 py-8 pb-32">
-        <header className="mb-10">
-          <h1 className="text-4xl font-extrabold tracking-tight"
+      <main className="max-w-screen-2xl mx-auto px-4 py-4 pb-20 md:px-6 md:py-6 md:pb-28">
+        <header className="mb-4 md:mb-8">
+          <h1 className="text-xl md:text-3xl font-extrabold tracking-tight"
             style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: '#383833' }}>
             Buen día, {firstName}
           </h1>
         </header>
 
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
+        <div className="flex flex-col lg:flex-row gap-4 md:gap-6 items-start">
           {/* Left: Focus Panel */}
           <div
             className="w-full lg:w-[560px] flex-shrink-0"
@@ -305,11 +305,11 @@ export default function NotesBoard() {
           {/* Right: Notes grid */}
           <div className="w-full flex-1 min-w-0">
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-5">
             {[...Array(4)].map((_, i) => (
               <div
                 key={i}
-                className="rounded-xl min-h-[130px] animate-pulse"
+                className="rounded-xl min-h-[90px] md:min-h-[120px] animate-pulse"
                 style={{ background: '#eae8e2' }}
               />
             ))}
@@ -323,7 +323,7 @@ export default function NotesBoard() {
         >
           <div style={{ display: loading ? 'none' : undefined }}>
           <SortableContext items={notes.map((n) => n.id)} strategy={rectSortingStrategy}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-5">
               {notes.map((note) => (
                 <SortableNoteCard
                   key={note.id}
@@ -335,7 +335,7 @@ export default function NotesBoard() {
               {/* Create New Note */}
               <button
                 onClick={() => setShowCreate(true)}
-                className="group relative border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-3 min-h-[130px] transition-colors duration-200 active:scale-[0.98] cursor-pointer"
+                className="group relative border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-3 min-h-[90px] md:min-h-[120px] transition-colors duration-200 active:scale-[0.98] cursor-pointer"
                 style={{ borderColor: '#c8c4bc', background: '#faf8f0' }}
                 onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = '#eeece4')}
                 onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.background = '#faf8f0')}
@@ -375,7 +375,7 @@ export default function NotesBoard() {
       {!selectedNote && (
         <button
           onClick={() => setShowCreate(true)}
-          className="fixed bottom-8 right-8 w-16 h-16 rounded-xl shadow-2xl flex items-center justify-center z-[60] transition-transform duration-200 active:scale-90"
+          className="fixed bottom-5 right-5 w-12 h-12 md:bottom-6 md:right-6 md:w-14 md:h-14 rounded-xl shadow-2xl flex items-center justify-center z-[60] transition-transform duration-200 active:scale-90"
           style={{ background: '#007257', color: '#ffffff' }}
         >
           <span className="material-symbols-outlined text-3xl">add</span>

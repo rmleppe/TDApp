@@ -105,7 +105,7 @@ export default function NoteDetailContent({
 
   return (
     <article
-      className="relative p-8 md:p-12 rounded-xl dog-ear"
+      className="relative p-4 md:p-8 rounded-xl dog-ear"
       style={{ background: dc.bg, boxShadow: '0px 10px 40px rgba(56,56,53,0.08)' }}
     >
       <div className="dog-ear-fold" />
@@ -140,7 +140,7 @@ export default function NoteDetailContent({
                 ;(e.target as HTMLInputElement).blur()
               }
             }}
-            className="text-4xl md:text-5xl font-extrabold tracking-tight bg-transparent outline-none w-full"
+            className="text-xl md:text-4xl font-extrabold tracking-tight bg-transparent outline-none w-full"
             style={{
               fontFamily: 'Plus Jakarta Sans, sans-serif',
               color: dc.title,

@@ -13,12 +13,12 @@ function ArchivedCard({ note, onUnarchive, onDelete }: {
   const [confirming, setConfirming] = useState<'delete' | null>(null)
 
   return (
-    <div className={`relative ${c.bg} p-6 rounded-xl dog-ear flex flex-col gap-3 min-h-[130px]`}
+    <div className={`relative ${c.bg} p-4 md:p-5 rounded-xl dog-ear flex flex-col gap-3 min-h-[90px] md:min-h-[120px]`}
       style={{ opacity: 0.85 }}>
       <div className="dog-ear-fold" />
 
       <div className="flex justify-between items-start">
-        <h3 className={`font-bold ${c.title} text-xl`}
+        <h3 className={`font-bold ${c.title} text-sm md:text-base`}
           style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
           {note.title}
         </h3>
@@ -89,9 +89,9 @@ export default function ArchivePage() {
     <div className="min-h-screen" style={{ background: '#fefcf4', color: '#383833' }}>
       <TopAppBar />
 
-      <main className="max-w-screen-2xl mx-auto px-6 py-8 pb-32">
-        <header className="mb-10">
-          <h1 className="text-4xl font-extrabold tracking-tight"
+      <main className="max-w-screen-2xl mx-auto px-4 py-4 pb-20 md:px-6 md:py-6 md:pb-28">
+        <header className="mb-4 md:mb-8">
+          <h1 className="text-xl md:text-3xl font-extrabold tracking-tight"
             style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: '#383833' }}>
             Archivo
           </h1>
@@ -103,7 +103,7 @@ export default function ArchivePage() {
         </header>
 
         {archived.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-5">
             {archived.map((note) => (
               <ArchivedCard
                 key={note.id}

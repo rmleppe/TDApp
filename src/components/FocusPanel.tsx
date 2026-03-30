@@ -27,7 +27,7 @@ function TaskRow({
 }) {
   return (
     <div
-      className="group flex items-center gap-3 p-4 rounded-xl transition-all duration-150"
+      className="group flex items-center gap-3 p-2.5 md:p-3 rounded-xl transition-all duration-150"
       style={{
         background: '#ffffff',
         border: '1px solid #e8e5dd',
@@ -146,7 +146,7 @@ export default function FocusPanel() {
 
   return (
     <div
-      className="sticky top-24 rounded-2xl p-7 flex flex-col gap-4"
+      className="sticky top-24 rounded-2xl p-4 md:p-5 flex flex-col gap-3 md:gap-4"
       style={{
         background: '#f2efe6',
         border: '1px solid #e8e5dd',
@@ -156,7 +156,7 @@ export default function FocusPanel() {
       {/* Header */}
       <div className="flex items-center justify-between mb-1">
         <h2
-          className="font-bold text-2xl flex items-center gap-2"
+          className="font-bold text-base md:text-xl flex items-center gap-2"
           style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: '#383833' }}
         >
           <span className="material-symbols-outlined text-[26px]" style={{ color: '#007257' }}>
