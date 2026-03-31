@@ -156,7 +156,7 @@ export default function FocusPanel() {
       {/* Header */}
       <div className="flex items-center justify-between mb-1">
         <h2
-          className="font-bold text-8xl md:text-xl flex items-center gap-2"
+          className="font-bold text-xl md:text-xl flex items-center gap-2"
           style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: '#383833' }}
         >
           <span className="material-symbols-outlined text-[20px]" style={{ color: '#007257' }}>
