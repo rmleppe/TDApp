@@ -131,7 +131,7 @@ function TaskRow({
 export default function FocusPanel() {
   const {
     focusTasks, addFocusTask, toggleFocusTask, editFocusTask,
-    deleteFocusTask, selectedDate, setSelectedDate, firstTaskDate, isToday,
+    deleteFocusTask, selectedDate, setSelectedDate, isToday,
   } = useNotes()
   const [input, setInput] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
