@@ -232,6 +232,38 @@ function SortableNoteCard({ note, onClick }: { note: Note; onClick: () => void }
 }
 
 /* ── Board ────────────────────────────────────────────────────────── */
+const BANNER_KEY = 'focus-day-banner-dismissed'
+
+function FocusDayBanner() {
+  const [visible, setVisible] = useState(() => localStorage.getItem(BANNER_KEY) !== 'true')
+
+  if (!visible) return null
+
+  return (
+    <div
+      className="flex items-start gap-3 rounded-2xl p-3 mb-3"
+      style={{ background: 'rgba(0,114,87,0.08)', border: '1px solid rgba(0,114,87,0.2)' }}
+    >
+      <span
+        className="material-symbols-outlined text-[18px] flex-shrink-0 mt-0.5"
+        style={{ color: '#007257' }}
+      >
+        info
+      </span>
+      <p className="text-xs flex-1" style={{ color: '#383833', fontFamily: 'Be Vietnam Pro, sans-serif', lineHeight: '1.5' }}>
+        <span className="font-semibold">Nuevo: Focus por día.</span> Ahora tus tareas se guardan por fecha. Usa las flechas ← → para navegar entre días y revisar tu historial.
+      </p>
+      <button
+        onClick={() => { localStorage.setItem(BANNER_KEY, 'true'); setVisible(false) }}
+        className="flex-shrink-0 cursor-pointer"
+        style={{ color: '#007257' }}
+      >
+        <span className="material-symbols-outlined text-[16px]">close</span>
+      </button>
+    </div>
+  )
+}
+
 export default function NotesBoard() {
   const { notes: allNotes, loading, addNote, reorderNotes } = useNotes()
   const notes = allNotes.filter((n) => !n.archived)
@@ -299,6 +331,7 @@ export default function NotesBoard() {
             className="w-full lg:w-[560px] flex-shrink-0"
             style={{ position: 'relative', zIndex: focusMode ? 60 : undefined }}
           >
+            <FocusDayBanner />
             <FocusPanel />
           </div>
 

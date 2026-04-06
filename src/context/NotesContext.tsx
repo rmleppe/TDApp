@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, useRef, type ReactNode } from 'react'
 import {
   collection,
   doc,
@@ -9,6 +9,9 @@ import {
   writeBatch,
   query,
   orderBy,
+  where,
+  limit,
+  getDocs,
 } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { type Note } from '../data/notes'
@@ -20,11 +23,17 @@ function clean<T extends object>(obj: T): T {
   ) as T
 }
 
+function todayDate(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 export interface FocusTask {
   id: string
   text: string
   done: boolean
   order: number
+  date: string // YYYY-MM-DD
 }
 
 interface NotesContextValue {
@@ -42,6 +51,10 @@ interface NotesContextValue {
   editFocusTask: (id: string, text: string) => void
   reorderFocusTasks: (fromIndex: number, toIndex: number) => void
   deleteFocusTask: (id: string) => void
+  selectedDate: string
+  setSelectedDate: (date: string) => void
+  firstTaskDate: string | null
+  isToday: boolean
 }
 
 const NotesContext = createContext<NotesContextValue | null>(null)
@@ -51,7 +64,12 @@ export function NotesProvider({ uid, children }: { uid: string; children: ReactN
   const [focusTasks, setFocusTasks] = useState<FocusTask[]>([])
   const [notesReady, setNotesReady] = useState(false)
   const [tasksReady, setTasksReady] = useState(false)
+  const [selectedDate, setSelectedDate] = useState<string>(todayDate())
+  const [firstTaskDate, setFirstTaskDate] = useState<string | null>(null)
+  const migrationDone = useRef(false)
+
   const loading = !notesReady || !tasksReady
+  const isToday = selectedDate === todayDate()
 
   // Real-time listener — notes ordered by `order` field
   useEffect(() => {
@@ -62,14 +80,49 @@ export function NotesProvider({ uid, children }: { uid: string; children: ReactN
     })
   }, [uid])
 
-  // Real-time listener — focusTasks ordered by `order` field
+  // Listener A — oldest task date (for back-navigation limit)
   useEffect(() => {
-    const q = query(collection(db, 'users', uid, 'focusTasks'), orderBy('order'))
+    const q = query(
+      collection(db, 'users', uid, 'focusTasks'),
+      orderBy('date', 'asc'),
+      limit(1)
+    )
+    return onSnapshot(q, (snap) => {
+      if (!snap.empty) setFirstTaskDate(snap.docs[0].data().date as string)
+      else setFirstTaskDate(todayDate())
+    })
+  }, [uid])
+
+  // Listener B — focusTasks for the selected date
+  useEffect(() => {
+    const q = query(
+      collection(db, 'users', uid, 'focusTasks'),
+      where('date', '==', selectedDate),
+      orderBy('order')
+    )
     return onSnapshot(q, (snap) => {
       setFocusTasks(snap.docs.map((d) => d.data() as FocusTask))
       setTasksReady(true)
     })
-  }, [uid])
+  }, [uid, selectedDate])
+
+  // Migration — assign today's date to legacy tasks that have no date field
+  useEffect(() => {
+    if (!tasksReady || migrationDone.current) return
+    migrationDone.current = true
+    getDocs(collection(db, 'users', uid, 'focusTasks')).then((snap) => {
+      const today = todayDate()
+      const batch = writeBatch(db)
+      let count = 0
+      snap.docs.forEach((d) => {
+        if (!d.data().date) {
+          batch.update(doc(db, 'users', uid, 'focusTasks', d.id), { date: today })
+          count++
+        }
+      })
+      if (count > 0) batch.commit()
+    })
+  }, [tasksReady, uid])
 
   /* ── Notes actions ─────────────────────────────────────────────── */
 
@@ -112,7 +165,7 @@ export function NotesProvider({ uid, children }: { uid: string; children: ReactN
   const addFocusTask = (text: string) => {
     const id = `f${Date.now()}`
     const ref = doc(db, 'users', uid, 'focusTasks', id)
-    setDoc(ref, { id, text, done: false, order: focusTasks.length })
+    setDoc(ref, { id, text, done: false, order: focusTasks.length, date: selectedDate })
   }
 
   const toggleFocusTask = (id: string) => {
@@ -144,6 +197,7 @@ export function NotesProvider({ uid, children }: { uid: string; children: ReactN
     <NotesContext.Provider value={{
       notes, loading, addNote, updateNote, deleteNote, archiveNote, unarchiveNote, reorderNotes,
       focusTasks, addFocusTask, toggleFocusTask, editFocusTask, reorderFocusTasks, deleteFocusTask,
+      selectedDate, setSelectedDate, firstTaskDate, isToday,
     }}>
       {children}
     </NotesContext.Provider>
