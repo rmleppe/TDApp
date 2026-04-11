@@ -1,7 +1,79 @@
+import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 
+type Mode = 'login' | 'register'
+
+function getErrorMessage(code: string): string {
+  switch (code) {
+    case 'auth/user-not-found':
+    case 'auth/wrong-password':
+    case 'auth/invalid-credential':
+      return 'Correo o contraseña incorrectos.'
+    case 'auth/email-already-in-use':
+      return 'Este correo ya está registrado.'
+    case 'auth/weak-password':
+      return 'La contraseña debe tener al menos 6 caracteres.'
+    case 'auth/invalid-email':
+      return 'El correo no es válido.'
+    default:
+      return 'Ocurrió un error. Intenta de nuevo.'
+  }
+}
+
 export default function LoginPage() {
-  const { login } = useAuth()
+  const { login, loginWithEmail, registerWithEmail, resetPassword, fetchSignInMethods } = useAuth()
+
+  const [mode, setMode] = useState<Mode>('login')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
+
+  const handleReset = async () => {
+    if (!email) {
+      setError('Ingresa tu correo para recuperar la contraseña.')
+      return
+    }
+    setError('')
+    setSubmitting(true)
+    try {
+      const methods = await fetchSignInMethods(email)
+      if (methods.includes('google.com') && !methods.includes('password')) {
+        setError('Esta cuenta usa Google para iniciar sesión. Usa el botón "Entrar con Google".')
+        return
+      }
+      await resetPassword(email)
+      setResetSent(true)
+    } catch {
+      setError('No se pudo enviar el correo. Verifica la dirección.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setSubmitting(true)
+    try {
+      if (mode === 'login') {
+        await loginWithEmail(email, password)
+      } else {
+        await registerWithEmail(email, password)
+      }
+    } catch (err: unknown) {
+      const code = (err as { code?: string }).code ?? ''
+      setError(getErrorMessage(code))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const toggleMode = () => {
+    setMode(m => m === 'login' ? 'register' : 'login')
+    setError('')
+  }
 
   return (
     <div
@@ -32,13 +104,107 @@ export default function LoginPage() {
               className="text-base md:text-lg font-extrabold"
               style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: '#383833' }}
             >
-              Iniciar sesión
+              {mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
             </p>
             <p className="mt-1 text-sm" style={{ color: '#82807c', fontFamily: 'Be Vietnam Pro, sans-serif' }}>
-              Usa tu cuenta de Google para continuar
+              {mode === 'login' ? 'Accede a tu cuenta' : 'Regístrate con tu correo'}
             </p>
           </div>
 
+          {/* Email/password form */}
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+            <input
+              type="email"
+              placeholder="Correo electrónico"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+              className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all"
+              style={{
+                background: '#ffffff',
+                border: '1.5px solid #e8e5dd',
+                color: '#383833',
+                fontFamily: 'Be Vietnam Pro, sans-serif',
+              }}
+              onFocus={e => (e.currentTarget.style.borderColor = '#007257')}
+              onBlur={e => (e.currentTarget.style.borderColor = '#e8e5dd')}
+            />
+            <input
+              type="password"
+              placeholder="Contraseña"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+              className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all"
+              style={{
+                background: '#ffffff',
+                border: '1.5px solid #e8e5dd',
+                color: '#383833',
+                fontFamily: 'Be Vietnam Pro, sans-serif',
+              }}
+              onFocus={e => (e.currentTarget.style.borderColor = '#007257')}
+              onBlur={e => (e.currentTarget.style.borderColor = '#e8e5dd')}
+            />
+
+            {mode === 'login' && (
+              <div className="flex justify-end -mt-1">
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="text-xs underline cursor-pointer"
+                  style={{ color: '#007257', fontFamily: 'Be Vietnam Pro, sans-serif' }}
+                >
+                  ¿Olvidaste tu contraseña?
+                </button>
+              </div>
+            )}
+
+            {resetSent && (
+              <p className="text-xs text-center" style={{ color: '#007257', fontFamily: 'Be Vietnam Pro, sans-serif' }}>
+                Te enviamos un correo para recuperar tu contraseña.
+              </p>
+            )}
+
+            {error && (
+              <p className="text-xs text-center" style={{ color: '#c0392b', fontFamily: 'Be Vietnam Pro, sans-serif' }}>
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full py-3 rounded-xl font-semibold transition-all active:scale-95 cursor-pointer disabled:opacity-60"
+              style={{
+                background: '#007257',
+                color: '#ffffff',
+                fontFamily: 'Plus Jakarta Sans, sans-serif',
+              }}
+            >
+              {submitting ? '...' : mode === 'login' ? 'Entrar' : 'Crear cuenta'}
+            </button>
+
+            <p className="text-xs text-center" style={{ color: '#82807c', fontFamily: 'Be Vietnam Pro, sans-serif' }}>
+              {mode === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}{' '}
+              <button
+                type="button"
+                onClick={toggleMode}
+                className="font-semibold underline cursor-pointer"
+                style={{ color: '#007257' }}
+              >
+                {mode === 'login' ? 'Crear una' : 'Inicia sesión'}
+              </button>
+            </p>
+          </form>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px" style={{ background: '#e8e5dd' }} />
+            <span className="text-xs" style={{ color: '#b0ada7', fontFamily: 'Be Vietnam Pro, sans-serif' }}>o</span>
+            <div className="flex-1 h-px" style={{ background: '#e8e5dd' }} />
+          </div>
+
+          {/* Google button */}
           <button
             onClick={login}
             className="flex items-center justify-center gap-3 w-full py-3 rounded-xl font-semibold transition-all active:scale-95 cursor-pointer"
@@ -49,10 +215,9 @@ export default function LoginPage() {
               fontFamily: 'Plus Jakarta Sans, sans-serif',
               boxShadow: '0 1px 4px rgba(56,56,53,0.08)',
             }}
-            onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 16px rgba(56,56,53,0.14)')}
-            onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.boxShadow = '0 1px 4px rgba(56,56,53,0.08)')}
+            onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 4px 16px rgba(56,56,53,0.14)')}
+            onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 1px 4px rgba(56,56,53,0.08)')}
           >
-            {/* Google icon */}
             <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
               <path d="M44.5 20H24v8.5h11.8C34.7 33.9 29.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6-6C34.6 5.1 29.6 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21c10.5 0 20-7.5 20-21 0-1.3-.2-2.7-.5-4z" fill="#FFC107"/>
               <path d="M6.3 14.7l7 5.1C15.1 16 19.3 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6-6C34.6 5.1 29.6 3 24 3 16.3 3 9.6 7.9 6.3 14.7z" fill="#FF3D00"/>
