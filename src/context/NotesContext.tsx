@@ -124,6 +124,29 @@ export function NotesProvider({ uid, children }: { uid: string; children: ReactN
     })
   }, [tasksReady, uid])
 
+  // Rollover — move unfinished tasks from previous days to today
+  useEffect(() => {
+    if (!isToday || !tasksReady) return
+    const today = todayDate()
+    getDocs(collection(db, 'users', uid, 'focusTasks')).then((snap) => {
+      const batch = writeBatch(db)
+      let moved = 0
+      const baseOrder = focusTasks.length
+
+      snap.docs.forEach((d) => {
+        const data = d.data() as FocusTask
+        if (data.done === false && data.date && data.date < today) {
+          batch.update(doc(db, 'users', uid, 'focusTasks', d.id), {
+            date: today,
+            order: baseOrder + moved,
+          })
+          moved++
+        }
+      })
+      if (moved > 0) batch.commit()
+    })
+  }, [isToday, tasksReady, uid, focusTasks.length])
+
   /* ── Notes actions ─────────────────────────────────────────────── */
 
   const addNote = (note: Note) => {
